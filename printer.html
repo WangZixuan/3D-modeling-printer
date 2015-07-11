@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+        <script src="C:\Users\Zixuan\Desktop\three.min.js"></script>
+        <script>
+            var xrotate = 0;
+            var yrotate = 0;
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+        </script>
+	</head>
+	<body>
+		
+		<script>
+		   
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
+			var cube = new THREE.Mesh( geometry, material );
+			scene.add( cube );
+
+			camera.position.z = 5;
+
+			var render = function () {
+				//requestAnimationFrame( render );
+
+				/*cube.rotation.x += 0.5;
+				cube.rotation.y += 0.5;*/
+
+				renderer.render(scene, camera);
+			};
+			render();
+			function rotateUp() {
+				//alert("haha");
+				xrotate -= 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				render();
+			}
+			function rotateDown() {
+				//alert("haha");
+				xrotate += 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				render();
+			}
+			function rotateLeft() {
+				//alert("haha");
+				yrotate -= 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				render();
+			}
+			function rotateRight() {
+				//alert("haha");
+				yrotate += 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				render();
+			}
+		</script>
+        <button id="Up" onclick="rotateUp()">Up</button>
+        <button id="Down" onclick="rotateDown()">Down</button>
+        <button id="Left" onclick="rotateLeft()">Left</button>
+        <button id="Right" onclick="rotateRight()">Right</button>
+	</body>
+</html
