@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>canvas { width: 100%; height: 100% }</style>
+    <script src="three.min.js"></script>
+</head>
+<body>
+<script>
+    var scene = new THREE.Scene();
+
+    var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 10000);
+    camera.position.x = 400;
+    camera.position.z = 400;
+    camera.position.y = 100;
+    camera.lookAt({x:0,y:0,z:0});
+
+
+    var renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    /*objects*/
+    var cube = new THREE.Mesh(
+            new THREE.CubeGeometry(50,50,50),
+            new THREE.MeshBasicMaterial({color: 0xFF0000}));
+    cube.position.y = 25;
+    cube.position.x = 25;
+    cube.position.z = 25;
+    scene.add(cube);
+
+    var planeGeo = new THREE.PlaneGeometry(500, 500, 10, 10);
+    var planeMat = new THREE.MeshBasicMaterial({color: 0x555555, wireframe: true});
+    var plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.rotation.x = -Math.PI/2;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    var light = new THREE.SpotLight();
+    light.position.set( 170, 330, -160 );
+    scene.add(light);
+
+    var render = function(){renderer.render(scene, camera)};
+    render();
+    /*key pressed event*/
+    document.onkeydown = onKeyDown;
+    function onKeyDown(ev) {
+        ev = ev || window.event;
+        var keyCode = getKeyCode(ev);
+        document.getElementById("s4").innerHTML = keyCode;
+        if(keyCode == 37) {
+            var z0 = camera.position.z;
+            var x0 = camera.position.x;
+            camera.position.z = z0 * Math.cos(Math.PI/180) + x0 * Math.sin(Math.PI/180);
+            camera.position.x = -1 * z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
+            camera.lookAt({x:0,y:0,z:0});
+            render();
+        }
+        else if(keyCode == 39) {
+            var z0 = camera.position.z;
+            var x0 = camera.position.x;
+            camera.position.z = z0 * Math.cos(Math.PI/180) - x0 * Math.sin(Math.PI/180);
+            camera.position.x = z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
+            camera.lookAt({x:0,y:0,z:0});
+            render();
+        }
+    }
+    function getKeyCode(ev)
+    {
+        var kc;
+        if(window.event) // IE
+            kc = ev.keyCode;
+        else if(ev.which) // Netscape/Firefox/Opera
+            kc = ev.which;
+        return kc;
+    }
+    /*mouse drug event*/
+    var cameraX = 0, cameraY = 0;
+    var mouseDowning = 0;
+    document.onmousemove = mouseMove;
+    function mouseMove(ev){
+        ev = ev || window.event;
+        var mousePos = mouseCoords(ev);
+        var offX = mousePos.x - cameraX;
+        var offX = mousePos.y - cameraY;
+        cameraX = mousePos.x;
+        cameraY = mousePos.y;
+        document.getElementById("s1").innerHTML = cameraX;
+        document.getElementById("s2").innerHTML = cameraY;
+        if(mouseDowning == 1) {
+            document.getElementById("s3").innerHTML = "pressing";
+            //camera.position.x
+        }
+        else {
+            document.getElementById("s3").innerHTML = "unpressing";
+        }
+    }
+    function mouseCoords(ev){
+        if(ev.pageX || ev.pageY){
+            return {x:ev.pageX, y:ev.pageY};
+        }
+        return {
+            x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
+            y:ev.clientY + document.body.scrollTop  - document.body.clientTop
+        };
+    }
+    document.onmousedown = mouseDown;
+    function mouseDown(ev){
+        ev = ev || window.event;
+        mouseDowning = 1;
+    }
+    document.onmouseup = mouseUp;
+    function mouseUp(ev){
+        ev = ev || window.event;
+        mouseDowning = 0;
+    }
+</script>
+<span id="s1"></span>
+<span id="s2"></span>
+<span id="s3"></span>
+<span id="s4"></span>
+</body>
+</html>
