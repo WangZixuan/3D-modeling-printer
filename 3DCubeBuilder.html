@@ -101,6 +101,16 @@
                 camera.lookAt({x:0,y:0,z:0});
                 render();
             }
+            else if(keyCode == 38){
+                camera.fov *= 0.95;
+                camera.updateProjectionMatrix();
+                render();
+            }
+            else if(keyCode == 40){
+                camera.fov /= 0.95;
+                camera.updateProjectionMatrix();
+                render();
+            }
         };
         function getKeyCode(ev)
         {
@@ -156,6 +166,7 @@
 <!--<body style="overflow-x:hidden;overflow-y:hidden">-->
 <body onload="threeStart();">
 <p>press "<-" or "->" to rotate the visual angle</p>
+<p>press UpArrow or DownArrow to zoom</p>
 <div id="canvas-frame"></div>
 <span id="s1"></span>
 <span id="s2"></span>
