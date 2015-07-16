@@ -2,18 +2,20 @@
 <html>
 <head>
     <title></title>
-    <script src="three.js"></script>
+    <script src="../three.js-master/build/three.js"></script>
     <style type="text/css">
         div#canvas-frame {
             border: none;
             cursor: pointer;
             width: 100%;
             height: 500px;
-            background-color: #FFFFFF;
+            background-color: #EEEEEE;
         }
     </style>
     <script>
         var renderer;
+        var width;
+        var height;
         function initThree() {
             width = document.getElementById('canvas-frame').clientWidth;
             height = document.getElementById('canvas-frame').clientHeight;
@@ -23,29 +25,82 @@
             renderer.setSize(width, height);
             document.getElementById('canvas-frame').appendChild(renderer.domElement);
             renderer.setClearColorHex(0xFFFFFF, 1.0);
-        }
+        };
 
         var scene;
         function initScene() {
             scene = new THREE.Scene();
-        }
+        };
 
+        var near;
+        var far;
+        var aspect;
+        var fov;
         var camera;
         function initCamera() {
-            camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+            near = 1;
+            far = 10000;
+            aspect = width / height;
+            fov = 45;
+            camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
             camera.updateProjectionMatrix();
             camera.position.x = 400;
-            camera.position.z = 400;
             camera.position.y = 100;
+            camera.position.z = 400;
             camera.lookAt({x:0,y:0,z:0});
-        }
+        };
 
         var light;
         function initLight() {
             light = new THREE.SpotLight();
             light.position.set( 170, 330, -160 );
             scene.add(light);
+        };
+
+        /*world coordinate to screen coordinate*/
+        /*var projectionMatrix = function () {
+                return new THREE.Matrix4(
+                        2 / (aspect * Math.tan(fov / 2)), 0, 0, 0,
+                        0, 1 / Math.tan(fov / 2), 0, 0,
+                        0, 0, -(far + near) / (far - near), -2 * far * near / (far - near),
+                        0, 0, -1, 0
+                );
+        };
+        function worldToScreen(x,y,z) {
+            console.log(viewMatrix(camera));
+            console.log(projectionMatrix());
+            var vector0 = new THREE.Vector3(x,y,z).applyMatrix4(viewMatrix(camera));
+            console.log(vector0);
+            var vector = vector0.applyMatrix4(projectionMatrix());
+            console.log(vector);
+            //var vpm4 = new THREE.Matrix4().multiplyMatrices(projectionMatrix(), viewMatrix(camera));
+            //console.log(vpm4);
+            //var vector = new THREE.Vector4(x,y,z,1).applyMatrix4(vpm4);
+            //console.log(vector);
+            var halfWidth = width / 2;
+            var halfHeight = height / 2;
+            var result = new THREE.Vector2(
+                    Math.round(vector.x * halfWidth + halfWidth),
+                    Math.round(-1 * vector.y * halfHeight + halfHeight)
+            );
+            return result;
+        };*/
+
+        /*var projector;
+        function initProjector() {
+            projector = new THREE.Projector();
         }
+        function worldToScreen(world_vector) {
+            var vector = projector.projectVector(world_vector, camera);
+            console.log(vector);
+            var halfWidth = width / 2;
+            var halfHeight = height / 2;
+            var result = new THREE.Vector2(
+                    Math.round(vector.x * halfWidth + halfWidth),
+                    Math.round(-1 * vector.y * halfHeight + halfHeight)
+            );
+            return result;
+        }*/
 
         /*objects*/
         var cube;
@@ -54,8 +109,8 @@
             cube = new THREE.Mesh(
                     new THREE.CubeGeometry(50,50,50),
                     new THREE.MeshBasicMaterial({color: 0xFF0000}));
-            cube.position.y = 25;
             cube.position.x = 25;
+            cube.position.y = 25;
             cube.position.z = 25;
             scene.add(cube);
 
@@ -65,7 +120,38 @@
             plane.rotation.x = -Math.PI/2;
             plane.receiveShadow = true;
             scene.add(plane);
-        }
+        };
+
+        /*var usableCoors;
+        function Coors(world_vector, screen_vector) {
+            this.world_vector = world_vector;
+            this.screen_vector = screen_vector;
+        };
+        function initCoors() {
+            usableCoors = new Array();
+            for(i = -225; i <= 225; i += 50) {
+                for(j = -225; j <= 225; j += 50) {
+                    /*var cur3 = new THREE.Vector3(i, 0, j);
+                    console.log(cur3);
+                    var cur4 = new THREE.Vector4(i, 0, j, 1);
+                    console.log(cur4);
+                    usableCoors.push(new Coors(cur3, worldToScreen(i,0,j)));
+                    console.log(usableCoors[usableCoors.length-1]);*/
+                    /*var projector = new THREE.Projector();
+                    var world_vector = new THREE.Vector3(i,0,j);
+                    console.log(world_vector);
+                    var vector = projector.projectVector(new THREE.Vector3(i,0,j), camera);
+                    var halfWidth = window.innerWidth / 2;
+                    var halfHeight = window.innerHeight / 2;
+                    var result = new THREE.Vector3(
+                        Math.round(vector.x * halfWidth + halfWidth),
+                        Math.round(-vector.y * halfHeight + halfHeight),
+                        0
+                    );
+                    console.log(result);
+                }
+            }
+        };*/
 
         var render = function(){renderer.render(scene, camera)};
         function threeStart() {
@@ -74,30 +160,30 @@
             initScene();
             initLight();
             initObject();
+            //initCoors();
             renderer.clear();
             render();
-        }
-
+        };
 
         /*key pressed event*/
         document.onkeydown = onKeyDown;
         function onKeyDown(ev) {
             ev = ev || window.event;
             var keyCode = getKeyCode(ev);
-            document.getElementById("s4").innerHTML = keyCode;
+            //document.getElementById("s4").innerHTML = keyCode;
             if(keyCode == 37) {
                 var z0 = camera.position.z;
                 var x0 = camera.position.x;
-                camera.position.z = z0 * Math.cos(Math.PI/180) + x0 * Math.sin(Math.PI/180);
-                camera.position.x = -1 * z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
+                camera.position.z = z0 * Math.cos(Math.PI/180) - x0 * Math.sin(Math.PI/180);
+                camera.position.x = z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
                 camera.lookAt({x:0,y:0,z:0});
                 render();
             }
             else if(keyCode == 39) {
                 var z0 = camera.position.z;
                 var x0 = camera.position.x;
-                camera.position.z = z0 * Math.cos(Math.PI/180) - x0 * Math.sin(Math.PI/180);
-                camera.position.x = z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
+                camera.position.z = z0 * Math.cos(Math.PI/180) + x0 * Math.sin(Math.PI/180);
+                camera.position.x = -1 * z0 * Math.sin(Math.PI/180) + x0 * Math.cos(Math.PI/180);
                 camera.lookAt({x:0,y:0,z:0});
                 render();
             }
@@ -121,6 +207,24 @@
                 kc = ev.which;
             return kc;
         };
+        /*mouse wheel event*/
+        /*注册事件*/
+        if(document.addEventListener){
+            document.addEventListener('DOMMouseScroll',scrollMove,false);
+        }//W3C
+        window.onmousewheel=document.onmousewheel = scrollMove;//IE/Opera/Chrome
+        function scrollMove(ev) {
+            ev = ev || window.event;
+            if(ev.wheelDelta){//IE/Opera/Chrome
+                document.getElementById("s4").innerHTML = ev.wheelDelta;
+                camera.fov *= Math.pow(0.99,ev.wheelDelta/30);
+                camera.updateProjectionMatrix();
+                render();
+            }
+            else if(ev.detail){//Firefox
+                //t2.value=ev.detail;
+            }
+        }
         /*mouse drug event*/
         var cameraX = 0, cameraY = 0;
         var mouseDowning = 0;
@@ -129,14 +233,31 @@
             ev = ev || window.event;
             var mousePos = mouseCoords(ev);
             var offX = mousePos.x - cameraX;
-            var offX = mousePos.y - cameraY;
+            var offY = mousePos.y - cameraY;
             cameraX = mousePos.x;
             cameraY = mousePos.y;
             document.getElementById("s1").innerHTML = cameraX;
             document.getElementById("s2").innerHTML = cameraY;
             if(mouseDowning == 1) {
                 document.getElementById("s3").innerHTML = "pressing";
-                //camera.position.x
+                var angle = Math.abs(offX)/10 * Math.PI/180;
+                if(offX > 0) {
+                    var z0 = camera.position.z;
+                    var x0 = camera.position.x;
+                    camera.position.z = z0 * Math.cos(angle) + x0 * Math.sin(angle);
+                    camera.position.x = -1 * z0 * Math.sin(angle) + x0 * Math.cos(angle);
+                    camera.lookAt({x:0,y:0,z:0});
+                    render();
+                }
+                else if(offX < 0){
+                    var z0 = camera.position.z;
+                    var x0 = camera.position.x;
+                    camera.position.z = z0 * Math.cos(angle) - x0 * Math.sin(angle);
+                    camera.position.x = z0 * Math.sin(angle) + x0 * Math.cos(angle);
+                    camera.lookAt({x:0,y:0,z:0});
+                    render();
+                }
+                else ;
             }
             else {
                 document.getElementById("s3").innerHTML = "unpressing";
@@ -163,11 +284,11 @@
         };
     </script>
 </head>
-<!--<body style="overflow-x:hidden;overflow-y:hidden">-->
 <body onload="threeStart();">
-<p>press "<-" or "->" to rotate the visual angle</p>
-<p>press UpArrow or DownArrow to zoom</p>
 <div id="canvas-frame"></div>
+<!--<p>press '<-' or '->' to rotate the visual angle</p>
+<p>press UpArrow or DownArrow to zoom</p>
+<p>press 'a' to place a cube</p>-->
 <span id="s1"></span>
 <span id="s2"></span>
 <span id="s3"></span>
