@@ -337,9 +337,10 @@
                 }
             }
             if(insidePlanes.length > 0) {
+                console.log(insidePlanes);
                 insidePlane = insidePlanes[0];
                 for(var i = 1; i < insidePlanes.length; i++) {
-                    if(insidePlane.screen_vector.z < insidePlanes[i].screen_vector.z) {
+                    if(insidePlane.screen_vector.z > insidePlanes[i].screen_vector.z) {
                         insidePlane = insidePlanes[i];
                     }
                 }
@@ -356,6 +357,21 @@
                     scene.add(cube);
                     renderer.clear();
                     render();
+                    usableCoors.push(new Coors(
+                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 50, insidePlane.world_vector.z),
+                            new THREE.Vector3()));
+                    /*usableCoors.push(new Coors(
+                            new THREE.Vector3(insidePlane.world_vector.x-25, insidePlane.world_vector.y + 25, insidePlane.world_vector.z),
+                            new THREE.Vector3()));
+                    usableCoors.push(new Coors(
+                            new THREE.Vector3(insidePlane.world_vector.x+25, insidePlane.world_vector.y + 25, insidePlane.world_vector.z),
+                            new THREE.Vector3()));
+                    usableCoors.push(new Coors(
+                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 25, insidePlane.world_vector.z-25),
+                            new THREE.Vector3()));
+                    usableCoors.push(new Coors(
+                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 25, insidePlane.world_vector.z+25),
+                            new THREE.Vector3()));*/
                 }
             }
             mouseDowning = 0;
