@@ -8,7 +8,7 @@
             border: none;
             cursor: pointer;
             width: 100%;
-            height: 500px;
+            height: 600px;
             background-color: #EEEEEE;
         }
     </style>
@@ -44,7 +44,7 @@
             fov = 45;
             camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
             camera.updateProjectionMatrix();
-            camera.position.set(400,100,400);
+            camera.position.set(400,700,400);
             /*camera.position.x = 400;
             camera.position.y = 100;
             camera.position.z = 400;*/
@@ -54,21 +54,22 @@
         var light;
         function initLight() {
             light = new THREE.SpotLight();
-            light.position.set( 170, 330, -160 );
+            light.position.set( 0, 500, 0 );
+            light.intensity = 5;
             scene.add(light);
         };
 
         /*objects*/
-        var cube;
+        //var cube;
         var planeGeo;
         function initObject() {
-            cube = new THREE.Mesh(
+            /*cube = new THREE.Mesh(
                     new THREE.CubeGeometry(50,50,50),
                     new THREE.MeshBasicMaterial({color: 0xFF0000}));
             cube.position.x = 25;
             cube.position.y = 25;
             cube.position.z = 25;
-            scene.add(cube);
+            scene.add(cube);*/
 
             planeGeo = new THREE.PlaneGeometry(500, 500, 10, 10);
             var planeMat = new THREE.MeshBasicMaterial({color: 0x555555, wireframe: true});
@@ -81,7 +82,8 @@
         var projector;
         function initProjector() {
             projector = new THREE.Projector();
-            var world_vector = new THREE.Vector3(250,0,250);
+        }
+        function toScreenXY( world_vector ) {
             var vector = projector.projectVector(world_vector.clone(), camera);
             var halfWidth = width / 2;
             var halfHeight = height / 2;
@@ -89,10 +91,11 @@
             //var offset = findOffset(document.getElementById('canvas-frame'));
             var offset = findOffset(renderer.domElement);
 
-            var result = {
-                x: Math.round(vector.x * halfWidth + halfWidth + offset.left),
-                y: Math.round(-vector.y * halfHeight + halfHeight + offset.top) };
-            console.log(result);
+            var result = new THREE.Vector3(
+                Math.round(vector.x * halfWidth + halfWidth + offset.left),
+                Math.round(-vector.y * halfHeight + halfHeight + offset.top),
+                vector.z);
+            return result;
         }
         function findOffset(element) {
             var pos = new Object();
@@ -115,43 +118,20 @@
         };
         function initCoors() {
             usableCoors = new Array();
-            var viewMat = new THREE.Matrix4().lookAt(camera.position, new THREE.Vector3(0,0,0), camera.up);
-            console.log(viewMat);
             for(i = -225; i <= 225; i += 50) {
                 for(j = -225; j <= 225; j += 50) {
-                    /*var cur3 = new THREE.Vector3(i, 0, j);
-                    console.log(cur3);
-                    var cur4 = new THREE.Vector4(i, 0, j, 1);
-                    console.log(cur4);
-                    usableCoors.push(new Coors(cur3, worldToScreen(i,0,j)));
-                    console.log(usableCoors[usableCoors.length-1]);*/
-
-                    /*var projector = new THREE.Projector();
-                    var world_vector = new THREE.Vector3(i,0,j);
-                    console.log(world_vector);
-                    console.log(camera.projectionMatrix);
-                    console.log(camera.matrixWorld);
-                    console.log(camera.matrixWorldInverse);
-                    console.log(camera.matrixWorldInverse.clone());
-                    //???camera.matrixWorldInverse != camera.matrixWorldInverse.clone() ???
-                    //???camera.matrixWorldInverse.elements[0] is not the number displayed with function console.log ???
-                    console.log(camera.matrixWorldInverse.elements);
-                    console.log("ele[0]: " + camera.matrixWorldInverse.elements[0]);
-                    var vector = projector.projectVector(world_vector.clone(), camera);
-                    var halfWidth = width / 2;
-                    var halfHeight = height / 2;
-                    var result = new THREE.Vector3(
-                        Math.round(vector.x * halfWidth + halfWidth),
-                        Math.round(-vector.y * halfHeight + halfHeight),
-                        0
-                    );
-                    console.log(result);*/
-
-                    /*var viewVector = new THREE.Vector3(i,0,j).applyMatrix4(viewMat);
-                    console.log(viewVector);*/
+                    var cur3 = new THREE.Vector3(i, 0, j);
+                    //console.log(cur3);
+                    usableCoors.push(new Coors(cur3, toScreenXY(cur3)));
+                    //console.log(usableCoors[usableCoors.length-1]);
                 }
             }
         };
+        function updateCoors() {
+            for(var i = 0; i < usableCoors.length; i++) {
+                    usableCoors[i].screen_vector = toScreenXY(usableCoors[i].world_vector);
+            }
+        }
 
         var render = function(){renderer.render(scene, camera)};
         function threeStart() {
@@ -167,7 +147,7 @@
         };
 
         /*key pressed event*/
-        document.onkeydown = onKeyDown;
+        /*document.onkeydown = onKeyDown;
         function onKeyDown(ev) {
             ev = ev || window.event;
             var keyCode = getKeyCode(ev);
@@ -207,7 +187,8 @@
             else if(ev.which) // Netscape/Firefox/Opera
                 kc = ev.which;
             return kc;
-        };
+        };*/
+
         /*mouse wheel event*/
         /*注册事件*/
         if(document.addEventListener){
@@ -225,6 +206,7 @@
             else if(ev.detail){//Firefox
                 //t2.value=ev.detail;
             }
+            //updateCoors();
         }
         /*mouse drug event*/
         var cameraX = 0, cameraY = 0;
@@ -274,14 +256,112 @@
             };
         };
         document.onmousedown = mouseDown;
+        var downTime = null;
         function mouseDown(ev){
             ev = ev || window.event;
             mouseDowning = 1;
+            downTime = new Date();
         };
         document.onmouseup = mouseUp;
         function mouseUp(ev){
             ev = ev || window.event;
             mouseDowning = 0;
+            //updateCoors();
+        };
+        document.onclick = mouseClick;
+        function mouseClick(ev) {
+            ev = ev || window.event;
+            var t = new Date();
+            if(t.getTime() - downTime.getTime() > 100) {
+                mouseDowning  = 0;
+                downTime = null;
+                return ;
+            }
+            var mousePos = mouseCoords(ev);
+            document.getElementById("s4").innerHTML = "click";
+            updateCoors();
+            console.log(usableCoors);
+            var insidePlanes = new Array();
+            var insidePlane = new Coors(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
+            for(var i = 0; i < usableCoors.length; i++) {
+                if(usableCoors[i].world_vector.x % 50 != 0 && usableCoors[i].world_vector.z % 50 != 0) {
+                    //center point of horizontal planes which can be placed with cube
+                    /*
+                     ---------------> X
+                     |   p1--------------->p2
+                     |       world_vector
+                     |   p4<---------------p3
+                    \|/ Z
+                    * */
+                    var p1 = new THREE.Vector3(
+                            usableCoors[i].world_vector.x-25,
+                            usableCoors[i].world_vector.y,
+                            usableCoors[i].world_vector.z-25
+                    );
+                    var p2 = new THREE.Vector3(
+                            usableCoors[i].world_vector.x+25,
+                            usableCoors[i].world_vector.y,
+                            usableCoors[i].world_vector.z-25
+                    );
+                    var p3 = new THREE.Vector3(
+                            usableCoors[i].world_vector.x+25,
+                            usableCoors[i].world_vector.y,
+                            usableCoors[i].world_vector.z+25
+                    );
+                    var p4 = new THREE.Vector3(
+                            usableCoors[i].world_vector.x-25,
+                            usableCoors[i].world_vector.y,
+                            usableCoors[i].world_vector.z+25
+                    );
+                    var sp1 = toScreenXY(p1);
+                    var sp2 = toScreenXY(p2);
+                    var sp3 = toScreenXY(p3);
+                    var sp4 = toScreenXY(p4);
+                    var mousePos3 = new THREE.Vector3(mousePos.x, mousePos.y, 0);
+
+                    var sp12 = new THREE.Vector3().subVectors(sp2, sp1);
+                    var sp1m = new THREE.Vector3().subVectors(mousePos, sp1);
+                    var sp23 = new THREE.Vector3().subVectors(sp3, sp2);
+                    var sp2m = new THREE.Vector3().subVectors(mousePos, sp2);
+                    var sp34 = new THREE.Vector3().subVectors(sp4, sp3);
+                    var sp3m = new THREE.Vector3().subVectors(mousePos, sp3);
+                    var sp41 = new THREE.Vector3().subVectors(sp1, sp4);
+                    var sp4m = new THREE.Vector3().subVectors(mousePos, sp4);
+                    if(crossVector2(sp12, sp1m) > 0 && crossVector2(sp23, sp2m) > 0
+                            && crossVector2(sp34, sp3m) > 0 && crossVector2(sp41, sp4m) > 0) {
+                        insidePlanes.push(usableCoors[i]);
+                    }
+                }
+                else {
+                    //center point of vertical planes which can be placed with cube
+                }
+            }
+            if(insidePlanes.length > 0) {
+                insidePlane = insidePlanes[0];
+                for(var i = 1; i < insidePlanes.length; i++) {
+                    if(insidePlane.screen_vector.z < insidePlanes[i].screen_vector.z) {
+                        insidePlane = insidePlanes[i];
+                    }
+                }
+            }
+            if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
+            else {
+                if(insidePlane.world_vector.x % 50 != 0 && insidePlane.world_vector.z % 50 != 0) {
+                    var cube = new THREE.Mesh(
+                            new THREE.CubeGeometry(50,50,50),
+                            new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                    cube.position.x = insidePlane.world_vector.x;
+                    cube.position.y = insidePlane.world_vector.y + 25;
+                    cube.position.z = insidePlane.world_vector.z;
+                    scene.add(cube);
+                    renderer.clear();
+                    render();
+                }
+            }
+            mouseDowning = 0;
+        };
+        function crossVector2(v1, v2) {
+            return v1.x*v2.y - v1.y*v2.x;
         };
     </script>
 </head>
