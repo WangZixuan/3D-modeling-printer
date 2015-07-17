@@ -2,7 +2,7 @@
 <html>
 <head>
     <title></title>
-    <script src="../three.js-master/build/three.js"></script>
+    <script src="three.js"></script>
     <style type="text/css">
         div#canvas-frame {
             border: none;
@@ -122,7 +122,7 @@
             scene.add(plane);
         };
 
-        /*var usableCoors;
+        var usableCoors;
         function Coors(world_vector, screen_vector) {
             this.world_vector = world_vector;
             this.screen_vector = screen_vector;
@@ -137,12 +137,20 @@
                     console.log(cur4);
                     usableCoors.push(new Coors(cur3, worldToScreen(i,0,j)));
                     console.log(usableCoors[usableCoors.length-1]);*/
-                    /*var projector = new THREE.Projector();
+                    var projector = new THREE.Projector();
                     var world_vector = new THREE.Vector3(i,0,j);
                     console.log(world_vector);
-                    var vector = projector.projectVector(new THREE.Vector3(i,0,j), camera);
-                    var halfWidth = window.innerWidth / 2;
-                    var halfHeight = window.innerHeight / 2;
+                    console.log(camera.projectionMatrix);
+                    console.log(camera.matrixWorld);
+                    console.log(camera.matrixWorldInverse);
+                    console.log(camera.matrixWorldInverse.clone());
+                    /*???camera.matrixWorldInverse != camera.matrixWorldInverse.clone() ???*/
+                    /*???camera.matrixWorldInverse.elements[0] is not the number displayed with function console.log ???*/
+                    console.log(camera.matrixWorldInverse.elements);
+                    console.log("ele[0]: " + camera.matrixWorldInverse.elements[0]);
+                    var vector = projector.projectVector(world_vector.clone(), camera);
+                    var halfWidth = width / 2;
+                    var halfHeight = height / 2;
                     var result = new THREE.Vector3(
                         Math.round(vector.x * halfWidth + halfWidth),
                         Math.round(-vector.y * halfHeight + halfHeight),
@@ -151,7 +159,7 @@
                     console.log(result);
                 }
             }
-        };*/
+        };
 
         var render = function(){renderer.render(scene, camera)};
         function threeStart() {
@@ -160,7 +168,7 @@
             initScene();
             initLight();
             initObject();
-            //initCoors();
+            initCoors();
             renderer.clear();
             render();
         };
