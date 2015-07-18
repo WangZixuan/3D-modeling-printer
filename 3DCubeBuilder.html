@@ -25,6 +25,7 @@
             renderer.setSize(width, height);
             document.getElementById('canvas-frame').appendChild(renderer.domElement);
             renderer.setClearColorHex(0xFFFFFF, 1.0);
+            render.shadowMapEnable = true;
         };
 
         var scene;
@@ -51,12 +52,17 @@
             camera.lookAt({x:0,y:0,z:0});
         };
 
-        var light;
+        var spotLight;
+        var ambientLight;
         function initLight() {
-            light = new THREE.SpotLight();
-            light.position.set( 0, 500, 0 );
-            light.intensity = 5;
-            scene.add(light);
+            spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set( 500, 500, 500 );
+            spotLight.castShadow = true;
+            //spotLight.intensity = 5;
+            scene.add(spotLight);
+
+            ambientLight = new THREE.AmbientLight(0x444444);
+            scene.add(ambientLight);
         };
 
         /*objects*/
@@ -72,7 +78,7 @@
             scene.add(cube);*/
 
             planeGeo = new THREE.PlaneGeometry(500, 500, 10, 10);
-            var planeMat = new THREE.MeshBasicMaterial({color: 0x555555, wireframe: true});
+            var planeMat = new THREE.MeshLambertMaterial({color: 0xff0000, wireframe: true});
             var plane = new THREE.Mesh(planeGeo, planeMat);
             plane.rotation.x = -Math.PI/2;
             plane.receiveShadow = true;
@@ -112,14 +118,14 @@
         }
 
         var usablePlanes;
-        var cubes;
+        var cubesCoors;
         function Coors(world_vector, screen_vector) {
             this.world_vector = world_vector;
             this.screen_vector = screen_vector;
         };
         function initCoors() {
             usablePlanes = new Array();
-            cubes = new Array();
+            cubesCoors = new Array();
             for(i = -225; i <= 225; i += 50) {
                 for(j = -225; j <= 225; j += 50) {
                     var cur3 = new THREE.Vector3(i, 0, j);
@@ -144,9 +150,9 @@
             return -1;
         };
         function indexOfCube(v) {
-            for (var i = 0; i < cubes.length; i++) {
-                //console.log(cubes[i].world_vector);
-                if (cubes[i].equals(v)) {
+            for (var i = 0; i < cubesCoors.length; i++) {
+                //console.log(cubesCoors[i].world_vector);
+                if (cubesCoors[i].equals(v)) {
                     return i;
                 }
             }
@@ -165,15 +171,15 @@
             return true;
         };
         function removeCube(dx) {
-            if(dx == null || dx > cubes.length || dx < 0) { return false; }
-            for(var i = 0,n = 0;i < cubes.length;i++)
+            if(dx == null || dx > cubesCoors.length || dx < 0) { return false; }
+            for(var i = 0,n = 0;i < cubesCoors.length;i++)
             {
-                if(!cubes[i].equals(cubes[dx]))
+                if(!cubesCoors[i].equals(cubesCoors[dx]))
                 {
-                    cubes[n++] = cubes[i];
+                    cubesCoors[n++] = cubesCoors[i];
                 }
             }
-            cubes.length -= 1;
+            cubesCoors.length -= 1;
             return true;
         };
 
@@ -255,6 +261,7 @@
         /*mouse drug event*/
         var cameraX = 0, cameraY = 0;
         var mouseDowning = 0;
+        var mouseDragging = 0;
         document.onmousemove = mouseMove;
         function mouseMove(ev){
             ev = ev || window.event;
@@ -266,6 +273,7 @@
             document.getElementById("s1").innerHTML = cameraX;
             document.getElementById("s2").innerHTML = cameraY;
             if(mouseDowning == 1) {
+                mouseDragging = 1;
                 document.getElementById("s3").innerHTML = "pressing";
                 var angle = Math.abs(offX)/10 * Math.PI/180;
                 if(offX > 0) {
@@ -300,11 +308,9 @@
             };
         };
         document.onmousedown = mouseDown;
-        var downTime = null;
         function mouseDown(ev){
             ev = ev || window.event;
             mouseDowning = 1;
-            downTime = new Date();
         };
         document.onmouseup = mouseUp;
         function mouseUp(ev){
@@ -315,10 +321,9 @@
         document.onclick = mouseClick;
         function mouseClick(ev) {
             ev = ev || window.event;
-            var t = new Date();
-            if(t.getTime() - downTime.getTime() > 100) {
+            if(mouseDragging == 1) {
                 mouseDowning  = 0;
-                downTime = null;
+                mouseDragging = 0;
                 return ;
             }
             var mousePos = mouseCoords(ev);
@@ -514,8 +519,9 @@
                     cube.position.x = cx;
                     cube.position.y = cy;
                     cube.position.z = cz;
-                    cubes.push(cube.position);
+                    cubesCoors.push(cube.position);
                     scene.add(cube);
+                    addOutline(cx,cy,cz);
                     renderer.clear();
                     render();
                     updateAfterAdd(cx, cy, cz);
@@ -531,8 +537,9 @@
                         cube.position.x = cx;
                         cube.position.y = cy;
                         cube.position.z = cz;
-                        cubes.push(cube.position);
+                        cubesCoors.push(cube.position);
                         scene.add(cube);
+                        addOutline(cx,cy,cz);
                         renderer.clear();
                         render();
                         updateAfterAdd(cx, cy, cz);
@@ -547,8 +554,9 @@
                         cube.position.x = cx;
                         cube.position.y = cy;
                         cube.position.z = cz;
-                        cubes.push(cube.position);
+                        cubesCoors.push(cube.position);
                         scene.add(cube);
+                        addOutline(cx,cy,cz);
                         renderer.clear();
                         render();
                         updateAfterAdd(cx, cy, cz);
@@ -565,8 +573,10 @@
                         cube.position.x = cx;
                         cube.position.y = cy;
                         cube.position.z = cz;
-                        cubes.push(cube.position);
+                        cube.castShadow = true;
+                        cubesCoors.push(cube.position);
                         scene.add(cube);
+                        addOutline(cx,cy,cz);
                         renderer.clear();
                         render();
                         updateAfterAdd(cx, cy, cz);
@@ -581,8 +591,9 @@
                         cube.position.x = cx;
                         cube.position.y = cy;
                         cube.position.z = cz;
-                        cubes.push(cube.position);
+                        cubesCoors.push(cube.position);
                         scene.add(cube);
+                        addOutline(cx,cy,cz);
                         renderer.clear();
                         render();
                         updateAfterAdd(cx, cy, cz);
@@ -594,6 +605,54 @@
         function crossVector2(v1, v2) {
             return v1.x*v2.y - v1.y*v2.x;
         };
+        function addOutline(cx,cy,cz) {
+            var material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            var upPlane = new THREE.Geometry();
+            upPlane.vertices.push(new THREE.Vector3(cx-25, cy+25, cz-25));
+            upPlane.vertices.push(new THREE.Vector3(cx-25, cy+25, cz+25));
+            upPlane.vertices.push(new THREE.Vector3(cx+25, cy+25, cz+25));
+            upPlane.vertices.push(new THREE.Vector3(cx+25, cy+25, cz-25));
+            upPlane.vertices.push(new THREE.Vector3(cx-25, cy+25, cz-25));
+
+            var downPlane = new THREE.Geometry();
+            downPlane.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
+            downPlane.vertices.push(new THREE.Vector3(cx-25, cy-25, cz+25));
+            downPlane.vertices.push(new THREE.Vector3(cx+25, cy-25, cz+25));
+            downPlane.vertices.push(new THREE.Vector3(cx+25, cy-25, cz-25));
+            downPlane.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
+
+            var gSideLine1 = new THREE.Geometry();
+            gSideLine1.vertices.push(new THREE.Vector3(cx-25, cy+25, cz-25));
+            gSideLine1.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
+
+            var gSideLine2 = new THREE.Geometry();
+            gSideLine2.vertices.push(new THREE.Vector3(cx-25, cy+25, cz+25));
+            gSideLine2.vertices.push(new THREE.Vector3(cx-25, cy-25, cz+25));
+
+            var gSideLine3 = new THREE.Geometry();
+            gSideLine3.vertices.push(new THREE.Vector3(cx+25, cy+25, cz+25));
+            gSideLine3.vertices.push(new THREE.Vector3(cx+25, cy-25, cz+25));
+
+            var gSideLine4 = new THREE.Geometry();
+            gSideLine4.vertices.push(new THREE.Vector3(cx+25, cy+25, cz-25));
+            gSideLine4.vertices.push(new THREE.Vector3(cx+25, cy-25, cz-25));
+
+            var upPlaneOutline = new THREE.Line(upPlane, material);
+            var downPlaneOutline = new THREE.Line(downPlane, material);
+            var sideLine1 = new THREE.Line(gSideLine1, material);
+            var sideLine2 = new THREE.Line(gSideLine2, material);
+            var sideLine3 = new THREE.Line(gSideLine3, material);
+            var sideLine4 = new THREE.Line(gSideLine4, material);
+
+            scene.add(upPlaneOutline);
+            scene.add(downPlaneOutline);
+            scene.add(sideLine1);
+            scene.add(sideLine2);
+            scene.add(sideLine3);
+            scene.add(sideLine4);
+        }
         function updateAfterAdd(cx, cy, cz) {
             var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
             var downPlaneCoor = new THREE.Vector3(cx, cy - 25, cz);
