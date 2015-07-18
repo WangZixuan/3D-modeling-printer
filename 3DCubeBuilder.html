@@ -111,27 +111,71 @@
             return pos;
         }
 
-        var usableCoors;
+        var usablePlanes;
+        var cubes;
         function Coors(world_vector, screen_vector) {
             this.world_vector = world_vector;
             this.screen_vector = screen_vector;
         };
         function initCoors() {
-            usableCoors = new Array();
+            usablePlanes = new Array();
+            cubes = new Array();
             for(i = -225; i <= 225; i += 50) {
                 for(j = -225; j <= 225; j += 50) {
                     var cur3 = new THREE.Vector3(i, 0, j);
                     //console.log(cur3);
-                    usableCoors.push(new Coors(cur3, toScreenXY(cur3)));
-                    //console.log(usableCoors[usableCoors.length-1]);
+                    usablePlanes.push(new Coors(cur3, toScreenXY(cur3)));
+                    //console.log(usablePlanes[usablePlanes.length-1]);
                 }
             }
         };
         function updateCoors() {
-            for(var i = 0; i < usableCoors.length; i++) {
-                    usableCoors[i].screen_vector = toScreenXY(usableCoors[i].world_vector);
+            for(var i = 0; i < usablePlanes.length; i++) {
+                    usablePlanes[i].screen_vector = toScreenXY(usablePlanes[i].world_vector);
             }
-        }
+        };
+        function indexOfPlane(v) {
+            for (var i = 0; i < usablePlanes.length; i++) {
+                //console.log(usablePlanes[i].world_vector);
+                if (usablePlanes[i].world_vector.equals(v)) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+        function indexOfCube(v) {
+            for (var i = 0; i < cubes.length; i++) {
+                //console.log(cubes[i].world_vector);
+                if (cubes[i].equals(v)) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+        function removePlane(dx) {
+            if(dx == null || dx > usablePlanes.length || dx < 0) { return false; }
+            for(var i = 0,n = 0;i < usablePlanes.length;i++)
+            {
+                if(!usablePlanes[i].world_vector.equals(usablePlanes[dx].world_vector))
+                {
+                    usablePlanes[n++] = usablePlanes[i];
+                }
+            }
+            usablePlanes.length -= 1;
+            return true;
+        };
+        function removeCube(dx) {
+            if(dx == null || dx > cubes.length || dx < 0) { return false; }
+            for(var i = 0,n = 0;i < cubes.length;i++)
+            {
+                if(!cubes[i].equals(cubes[dx]))
+                {
+                    cubes[n++] = cubes[i];
+                }
+            }
+            cubes.length -= 1;
+            return true;
+        };
 
         var render = function(){renderer.render(scene, camera)};
         function threeStart() {
@@ -280,11 +324,11 @@
             var mousePos = mouseCoords(ev);
             document.getElementById("s4").innerHTML = "click";
             updateCoors();
-            console.log(usableCoors);
+            //console.log(usablePlanes);
             var insidePlanes = new Array();
             var insidePlane = new Coors(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
-            for(var i = 0; i < usableCoors.length; i++) {
-                if(usableCoors[i].world_vector.x % 50 != 0 && usableCoors[i].world_vector.z % 50 != 0) {
+            for(var i = 0; i < usablePlanes.length; i++) {
+                if(usablePlanes[i].world_vector.x % 50 != 0 && usablePlanes[i].world_vector.z % 50 != 0) {
                     //center point of horizontal planes which can be placed with cube
                     /*
                      ---------------> X
@@ -294,24 +338,24 @@
                     \|/ Z
                     * */
                     var p1 = new THREE.Vector3(
-                            usableCoors[i].world_vector.x-25,
-                            usableCoors[i].world_vector.y,
-                            usableCoors[i].world_vector.z-25
+                            usablePlanes[i].world_vector.x-25,
+                            usablePlanes[i].world_vector.y,
+                            usablePlanes[i].world_vector.z-25
                     );
                     var p2 = new THREE.Vector3(
-                            usableCoors[i].world_vector.x+25,
-                            usableCoors[i].world_vector.y,
-                            usableCoors[i].world_vector.z-25
+                            usablePlanes[i].world_vector.x+25,
+                            usablePlanes[i].world_vector.y,
+                            usablePlanes[i].world_vector.z-25
                     );
                     var p3 = new THREE.Vector3(
-                            usableCoors[i].world_vector.x+25,
-                            usableCoors[i].world_vector.y,
-                            usableCoors[i].world_vector.z+25
+                            usablePlanes[i].world_vector.x+25,
+                            usablePlanes[i].world_vector.y,
+                            usablePlanes[i].world_vector.z+25
                     );
                     var p4 = new THREE.Vector3(
-                            usableCoors[i].world_vector.x-25,
-                            usableCoors[i].world_vector.y,
-                            usableCoors[i].world_vector.z+25
+                            usablePlanes[i].world_vector.x-25,
+                            usablePlanes[i].world_vector.y,
+                            usablePlanes[i].world_vector.z+25
                     );
                     var sp1 = toScreenXY(p1);
                     var sp2 = toScreenXY(p2);
@@ -329,15 +373,125 @@
                     var sp4m = new THREE.Vector3().subVectors(mousePos, sp4);
                     if(crossVector2(sp12, sp1m) > 0 && crossVector2(sp23, sp2m) > 0
                             && crossVector2(sp34, sp3m) > 0 && crossVector2(sp41, sp4m) > 0) {
-                        insidePlanes.push(usableCoors[i]);
+                        insidePlanes.push(usablePlanes[i]);
                     }
                 }
-                else {
+                else if(usablePlanes[i].world_vector.x % 50 == 0){
                     //center point of vertical planes which can be placed with cube
+                    /*
+                     /|\ Y
+                     |   p1--------------->p2
+                     |       world_vector
+                     |   p4<---------------p3
+                     ---------------> Z
+                     * */
+                    var p1 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x,
+                            usablePlanes[i].world_vector.y+25,
+                            usablePlanes[i].world_vector.z-25
+                    );
+                    var p2 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x,
+                            usablePlanes[i].world_vector.y+25,
+                            usablePlanes[i].world_vector.z+25
+                    );
+                    var p3 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x,
+                            usablePlanes[i].world_vector.y-25,
+                            usablePlanes[i].world_vector.z+25
+                    );
+                    var p4 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x,
+                            usablePlanes[i].world_vector.y-25,
+                            usablePlanes[i].world_vector.z-25
+                    );
+                    var sp1 = toScreenXY(p1);
+                    var sp2 = toScreenXY(p2);
+                    var sp3 = toScreenXY(p3);
+                    var sp4 = toScreenXY(p4);
+                    var mousePos3 = new THREE.Vector3(mousePos.x, mousePos.y, 0);
+
+                    var sp12 = new THREE.Vector3().subVectors(sp2, sp1);
+                    var sp1m = new THREE.Vector3().subVectors(mousePos, sp1);
+                    var sp23 = new THREE.Vector3().subVectors(sp3, sp2);
+                    var sp2m = new THREE.Vector3().subVectors(mousePos, sp2);
+                    var sp34 = new THREE.Vector3().subVectors(sp4, sp3);
+                    var sp3m = new THREE.Vector3().subVectors(mousePos, sp3);
+                    var sp41 = new THREE.Vector3().subVectors(sp1, sp4);
+                    var sp4m = new THREE.Vector3().subVectors(mousePos, sp4);
+
+                    var sp43 = new THREE.Vector3().subVectors(sp3, sp4);
+                    var sp32 = new THREE.Vector3().subVectors(sp2, sp3);
+                    var sp21 = new THREE.Vector3().subVectors(sp1, sp2);
+                    var sp14 = new THREE.Vector3().subVectors(sp4, sp1);
+
+                    if((crossVector2(sp12, sp1m) > 0 && crossVector2(sp23, sp2m) > 0
+                            && crossVector2(sp34, sp3m) > 0 && crossVector2(sp41, sp4m) > 0)
+                            || (crossVector2(sp43, sp4m) > 0 && crossVector2(sp32, sp3m) > 0
+                            && crossVector2(sp21, sp2m) > 0 && crossVector2(sp14, sp1m) > 0)) {
+                        insidePlanes.push(usablePlanes[i]);
+                    }
+                 }
+                else if(usablePlanes[i].world_vector.z % 50 == 0){
+                    //center point of vertical planes which can be placed with cube
+                    /*
+                     /|\ Y
+                     |   p1--------------->p2
+                     |       world_vector
+                     |   p4<---------------p3
+                     ---------------> X
+                     * */
+                    var p1 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x-25,
+                            usablePlanes[i].world_vector.y+25,
+                            usablePlanes[i].world_vector.z
+                    );
+                    var p2 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x+25,
+                            usablePlanes[i].world_vector.y+25,
+                            usablePlanes[i].world_vector.z
+                    );
+                    var p3 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x+25,
+                            usablePlanes[i].world_vector.y-25,
+                            usablePlanes[i].world_vector.z
+                    );
+                    var p4 = new THREE.Vector3(
+                            usablePlanes[i].world_vector.x-25,
+                            usablePlanes[i].world_vector.y-25,
+                            usablePlanes[i].world_vector.z
+                    );
+                    var sp1 = toScreenXY(p1);
+                    var sp2 = toScreenXY(p2);
+                    var sp3 = toScreenXY(p3);
+                    var sp4 = toScreenXY(p4);
+                    var mousePos3 = new THREE.Vector3(mousePos.x, mousePos.y, 0);
+
+                    var sp12 = new THREE.Vector3().subVectors(sp2, sp1);
+                    var sp1m = new THREE.Vector3().subVectors(mousePos, sp1);
+                    var sp23 = new THREE.Vector3().subVectors(sp3, sp2);
+                    var sp2m = new THREE.Vector3().subVectors(mousePos, sp2);
+                    var sp34 = new THREE.Vector3().subVectors(sp4, sp3);
+                    var sp3m = new THREE.Vector3().subVectors(mousePos, sp3);
+                    var sp41 = new THREE.Vector3().subVectors(sp1, sp4);
+                    var sp4m = new THREE.Vector3().subVectors(mousePos, sp4);
+
+                    var sp43 = new THREE.Vector3().subVectors(sp3, sp4);
+                    var sp32 = new THREE.Vector3().subVectors(sp2, sp3);
+                    var sp21 = new THREE.Vector3().subVectors(sp1, sp2);
+                    var sp14 = new THREE.Vector3().subVectors(sp4, sp1);
+
+                    if((crossVector2(sp12, sp1m) > 0 && crossVector2(sp23, sp2m) > 0
+                            && crossVector2(sp34, sp3m) > 0 && crossVector2(sp41, sp4m) > 0)
+                            || (crossVector2(sp43, sp4m) > 0 && crossVector2(sp32, sp3m) > 0
+                            && crossVector2(sp21, sp2m) > 0 && crossVector2(sp14, sp1m) > 0)) {
+                        insidePlanes.push(usablePlanes[i]);
+                    }
                 }
+                else ;
             }
             if(insidePlanes.length > 0) {
-                console.log(insidePlanes);
+                //console.log(insidePlanes);
                 insidePlane = insidePlanes[0];
                 for(var i = 1; i < insidePlanes.length; i++) {
                     if(insidePlane.screen_vector.z > insidePlanes[i].screen_vector.z) {
@@ -347,31 +501,92 @@
             }
             if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
             else {
-                if(insidePlane.world_vector.x % 50 != 0 && insidePlane.world_vector.z % 50 != 0) {
+                var px = insidePlane.world_vector.x;
+                var py = insidePlane.world_vector.y;
+                var pz = insidePlane.world_vector.z;
+                if(px % 50 != 0 && pz % 50 != 0) {
                     var cube = new THREE.Mesh(
                             new THREE.CubeGeometry(50,50,50),
                             new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                    cube.position.x = insidePlane.world_vector.x;
-                    cube.position.y = insidePlane.world_vector.y + 25;
-                    cube.position.z = insidePlane.world_vector.z;
+                    var cx = px;
+                    var cy = py + 25;
+                    var cz = pz;
+                    cube.position.x = cx;
+                    cube.position.y = cy;
+                    cube.position.z = cz;
+                    cubes.push(cube.position);
                     scene.add(cube);
                     renderer.clear();
                     render();
-                    usableCoors.push(new Coors(
-                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 50, insidePlane.world_vector.z),
-                            new THREE.Vector3()));
-                    /*usableCoors.push(new Coors(
-                            new THREE.Vector3(insidePlane.world_vector.x-25, insidePlane.world_vector.y + 25, insidePlane.world_vector.z),
-                            new THREE.Vector3()));
-                    usableCoors.push(new Coors(
-                            new THREE.Vector3(insidePlane.world_vector.x+25, insidePlane.world_vector.y + 25, insidePlane.world_vector.z),
-                            new THREE.Vector3()));
-                    usableCoors.push(new Coors(
-                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 25, insidePlane.world_vector.z-25),
-                            new THREE.Vector3()));
-                    usableCoors.push(new Coors(
-                            new THREE.Vector3(insidePlane.world_vector.x, insidePlane.world_vector.y + 25, insidePlane.world_vector.z+25),
-                            new THREE.Vector3()));*/
+                    updateAfterAdd(cx, cy, cz);
+                }
+                else if(px % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px+25,py-25,pz)) > -1) {
+                        var cube = new THREE.Mesh(
+                                new THREE.CubeGeometry(50,50,50),
+                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                        var cx = px + 25;
+                        var cy = py;
+                        var cz = pz;
+                        cube.position.x = cx;
+                        cube.position.y = cy;
+                        cube.position.z = cz;
+                        cubes.push(cube.position);
+                        scene.add(cube);
+                        renderer.clear();
+                        render();
+                        updateAfterAdd(cx, cy, cz);
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px-25,py-25,pz))> -1) {
+                        var cube = new THREE.Mesh(
+                                new THREE.CubeGeometry(50,50,50),
+                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                        var cx = px - 25;
+                        var cy = py;
+                        var cz = pz;
+                        cube.position.x = cx;
+                        cube.position.y = cy;
+                        cube.position.z = cz;
+                        cubes.push(cube.position);
+                        scene.add(cube);
+                        renderer.clear();
+                        render();
+                        updateAfterAdd(cx, cy, cz);
+                    }
+                }
+                else if(pz % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz+25)) > -1) {
+                        var cube = new THREE.Mesh(
+                                new THREE.CubeGeometry(50,50,50),
+                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                        var cx = px;
+                        var cy = py;
+                        var cz = pz + 25;
+                        cube.position.x = cx;
+                        cube.position.y = cy;
+                        cube.position.z = cz;
+                        cubes.push(cube.position);
+                        scene.add(cube);
+                        renderer.clear();
+                        render();
+                        updateAfterAdd(cx, cy, cz);
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz-25))> -1) {
+                        var cube = new THREE.Mesh(
+                                new THREE.CubeGeometry(50,50,50),
+                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                        var cx = px;
+                        var cy = py;
+                        var cz = pz-25;
+                        cube.position.x = cx;
+                        cube.position.y = cy;
+                        cube.position.z = cz;
+                        cubes.push(cube.position);
+                        scene.add(cube);
+                        renderer.clear();
+                        render();
+                        updateAfterAdd(cx, cy, cz);
+                    }
                 }
             }
             mouseDowning = 0;
@@ -379,6 +594,44 @@
         function crossVector2(v1, v2) {
             return v1.x*v2.y - v1.y*v2.x;
         };
+        function updateAfterAdd(cx, cy, cz) {
+            var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
+            var downPlaneCoor = new THREE.Vector3(cx, cy - 25, cz);
+            removePlane(indexOfPlane(downPlaneCoor));
+            usablePlanes.push(new Coors(upPlaneCoor, toScreenXY(upPlaneCoor)));
+
+            var sidePlaneCoor1 = new THREE.Vector3(cx - 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx - 50, cy, cz)) > -1) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor1));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor1, toScreenXY(sidePlaneCoor1)));
+            }
+
+            var sidePlaneCoor2 = new THREE.Vector3(cx + 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx + 50, cy, cz)) > -1) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor2));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor2, toScreenXY(sidePlaneCoor2)));
+            }
+
+            var sidePlaneCoor3 = new THREE.Vector3(cx, cy, cz - 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz - 50)) > -1) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor3));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor3, toScreenXY(sidePlaneCoor3)));
+            }
+
+            var sidePlaneCoor4 = new THREE.Vector3(cx, cy, cz + 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz + 50)) > -1) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor4));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor4, toScreenXY(sidePlaneCoor4)));
+            }
+        }
     </script>
 </head>
 <body onload="threeStart();">
