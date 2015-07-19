@@ -118,14 +118,19 @@
         }
 
         var usablePlanes;
-        var cubesCoors;
+        var cubes;
         function Coors(world_vector, screen_vector) {
             this.world_vector = world_vector;
             this.screen_vector = screen_vector;
         };
+        function cubeInfo(world_vector, cube, lines) {
+            this.world_vector = world_vector;
+            this.cube = cube;
+            this.lines = lines;
+        };
         function initCoors() {
             usablePlanes = new Array();
-            cubesCoors = new Array();
+            cubes = new Array();
             for(i = -225; i <= 225; i += 50) {
                 for(j = -225; j <= 225; j += 50) {
                     var cur3 = new THREE.Vector3(i, 0, j);
@@ -150,9 +155,9 @@
             return -1;
         };
         function indexOfCube(v) {
-            for (var i = 0; i < cubesCoors.length; i++) {
-                //console.log(cubesCoors[i].world_vector);
-                if (cubesCoors[i].equals(v)) {
+            for (var i = 0; i < cubes.length; i++) {
+                //console.log(cubes[i].world_vector);
+                if (cubes[i].world_vector.equals(v)) {
                     return i;
                 }
             }
@@ -171,15 +176,15 @@
             return true;
         };
         function removeCube(dx) {
-            if(dx == null || dx > cubesCoors.length || dx < 0) { return false; }
-            for(var i = 0,n = 0;i < cubesCoors.length;i++)
+            if(dx == null || dx > cubes.length || dx < 0) { return false; }
+            for(var i = 0,n = 0;i < cubes.length;i++)
             {
-                if(!cubesCoors[i].equals(cubesCoors[dx]))
+                if(!cubes[i].world_vector.equals(cubes[dx].world_vector))
                 {
-                    cubesCoors[n++] = cubesCoors[i];
+                    cubes[n++] = cubes[i];
                 }
             }
-            cubesCoors.length -= 1;
+            cubes.length -= 1;
             return true;
         };
 
@@ -197,11 +202,11 @@
         };
 
         /*key pressed event*/
-        /*document.onkeydown = onKeyDown;
+        document.onkeydown = onKeyDown;
         function onKeyDown(ev) {
             ev = ev || window.event;
             var keyCode = getKeyCode(ev);
-            //document.getElementById("s4").innerHTML = keyCode;
+            document.getElementById("s4").innerHTML = keyCode;
             if(keyCode == 37) {
                 var z0 = camera.position.z;
                 var x0 = camera.position.x;
@@ -228,6 +233,68 @@
                 camera.updateProjectionMatrix();
                 render();
             }
+            else if(keyCode == 82) { //remove objects
+                var insidePlanes = genInsidePlanes({x:mouseX,y:mouseY});
+                console.log(insidePlanes);
+                var insidePlane = genInsidePlane(insidePlanes);
+                console.log(insidePlane);
+                console.log(cubes);
+                var cx = 0, cy = 0, cz = 0;
+                if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
+                else {
+                    var px = insidePlane.world_vector.x;
+                    var py = insidePlane.world_vector.y;
+                    var pz = insidePlane.world_vector.z;
+                    if(px % 50 != 0 && pz % 50 != 0) {
+                        cx = px;
+                        cy = py - 25;
+                        cz = pz;
+                    }
+                    else if(px % 50 == 0){
+                        if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1) {
+                            cx = px - 25;
+                            cy = py;
+                            cz = pz;
+                        }
+                        else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1) {
+                            cx = px + 25;
+                            cy = py;
+                            cz = pz;
+                        }
+                    }
+                    else if(pz % 50 == 0){
+                        if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1) {
+                            cx = px;
+                            cy = py;
+                            cz = pz - 25;
+                        }
+                        else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1) {
+                            cx = px;
+                            cy = py;
+                            cz = pz + 25;
+                        }
+                    }
+                }
+                if(cx == 0 && cy == 0 && cz == 0)
+                    return ;
+                var upperCubeIndex = indexOfCube(new THREE.Vector3(cx, cy + 50, cz));
+                if(upperCubeIndex > -1)
+                    return ;
+                var cubeIndex = indexOfCube(new THREE.Vector3(cx, cy, cz));
+                if(cubeIndex < 0)
+                    return ;
+                scene.remove(cubes[cubeIndex].cube);
+                scene.remove(cubes[cubeIndex].lines[0]);
+                scene.remove(cubes[cubeIndex].lines[1]);
+                scene.remove(cubes[cubeIndex].lines[2]);
+                scene.remove(cubes[cubeIndex].lines[3]);
+                scene.remove(cubes[cubeIndex].lines[4]);
+                scene.remove(cubes[cubeIndex].lines[5]);
+                removeCube(cubeIndex);
+                renderer.clear();
+                render();
+                updateAfterDelete(cx, cy, cz);
+            }
         };
         function getKeyCode(ev)
         {
@@ -237,7 +304,45 @@
             else if(ev.which) // Netscape/Firefox/Opera
                 kc = ev.which;
             return kc;
-        };*/
+        };
+        function updateAfterDelete(cx, cy, cz) {
+            var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
+            var downPlaneCoor = new THREE.Vector3(cx, cy - 25, cz);
+            removePlane(indexOfPlane(upPlaneCoor));
+            usablePlanes.push(new Coors(downPlaneCoor, toScreenXY(downPlaneCoor)));
+
+            var sidePlaneCoor1 = new THREE.Vector3(cx - 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx - 50, cy, cz)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor1));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor1, toScreenXY(sidePlaneCoor1)));
+            }
+
+            var sidePlaneCoor2 = new THREE.Vector3(cx + 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx + 50, cy, cz)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor2));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor2, toScreenXY(sidePlaneCoor2)));
+            }
+
+            var sidePlaneCoor3 = new THREE.Vector3(cx, cy, cz - 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz - 50)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor3));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor3, toScreenXY(sidePlaneCoor3)));
+            }
+
+            var sidePlaneCoor4 = new THREE.Vector3(cx, cy, cz + 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz + 50)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor4));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor4, toScreenXY(sidePlaneCoor4)));
+            }
+        }
 
         /*mouse wheel event*/
         /*注册事件*/
@@ -258,20 +363,20 @@
             }
             //updateCoors();
         }
-        /*mouse drug event*/
-        var cameraX = 0, cameraY = 0;
+        /*mouse move event*/
+        var mouseX = 0, mouseY = 0;
         var mouseDowning = 0;
         var mouseDragging = 0;
         document.onmousemove = mouseMove;
         function mouseMove(ev){
             ev = ev || window.event;
             var mousePos = mouseCoords(ev);
-            var offX = mousePos.x - cameraX;
-            var offY = mousePos.y - cameraY;
-            cameraX = mousePos.x;
-            cameraY = mousePos.y;
-            document.getElementById("s1").innerHTML = cameraX;
-            document.getElementById("s2").innerHTML = cameraY;
+            var offX = mousePos.x - mouseX;
+            var offY = mousePos.y - mouseY;
+            mouseX = mousePos.x;
+            mouseY = mousePos.y;
+            document.getElementById("s1").innerHTML = mouseX;
+            document.getElementById("s2").innerHTML = mouseY;
             if(mouseDowning == 1) {
                 mouseDragging = 1;
                 document.getElementById("s3").innerHTML = "pressing";
@@ -321,17 +426,75 @@
         document.onclick = mouseClick;
         function mouseClick(ev) {
             ev = ev || window.event;
+            updateCoors();
             if(mouseDragging == 1) {
                 mouseDowning  = 0;
                 mouseDragging = 0;
                 return ;
             }
-            var mousePos = mouseCoords(ev);
-            document.getElementById("s4").innerHTML = "click";
-            updateCoors();
-            //console.log(usablePlanes);
+            if(ev.button == 0)
+                document.getElementById("s4").innerHTML = "left click";
+            var insidePlanes = genInsidePlanes({x:mouseX,y:mouseY});
+            var insidePlane = genInsidePlane(insidePlanes);
+            if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
+            else {
+                var px = insidePlane.world_vector.x;
+                var py = insidePlane.world_vector.y;
+                var pz = insidePlane.world_vector.z;
+                var cube = new THREE.Mesh(
+                        new THREE.CubeGeometry(50,50,50),
+                        new THREE.MeshLambertMaterial({color: 0x0000ff}));
+                addCube = 0;
+                if(px % 50 != 0 && pz % 50 != 0) {
+                    var cx = px;
+                    var cy = py + 25;
+                    var cz = pz;
+                    addCube = 1;
+                }
+                else if(px % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px+25,py-25,pz)) > -1) {
+                        var cx = px + 25;
+                        var cy = py;
+                        var cz = pz;
+                        addCube = 1;
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px-25,py-25,pz))> -1) {
+                        var cx = px - 25;
+                        var cy = py;
+                        var cz = pz;
+                        addCube = 1;
+                    }
+                }
+                else if(pz % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz+25)) > -1) {
+                        var cx = px;
+                        var cy = py;
+                        var cz = pz + 25;
+                        addCube = 1;
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz-25))> -1) {
+                        var cx = px;
+                        var cy = py;
+                        var cz = pz-25;
+                        addCube = 1;
+                    }
+                }
+                if(addCube == 1) {
+                    cube.position.set(cx,cy,cz);
+                    scene.add(cube);
+                    cubes.push(new cubeInfo(cube.position, cube, addOutline(cx,cy,cz)));
+                    renderer.clear();
+                    render();
+                    updateAfterAdd(cx, cy, cz);
+                }
+            }
+            mouseDowning = 0;
+        };
+        function crossVector2(v1, v2) {
+            return v1.x*v2.y - v1.y*v2.x;
+        };
+        function genInsidePlanes(mousePos){
             var insidePlanes = new Array();
-            var insidePlane = new Coors(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
             for(var i = 0; i < usablePlanes.length; i++) {
                 if(usablePlanes[i].world_vector.x % 50 != 0 && usablePlanes[i].world_vector.z % 50 != 0) {
                     //center point of horizontal planes which can be placed with cube
@@ -340,8 +503,8 @@
                      |   p1--------------->p2
                      |       world_vector
                      |   p4<---------------p3
-                    \|/ Z
-                    * */
+                     \|/ Z
+                     * */
                     var p1 = new THREE.Vector3(
                             usablePlanes[i].world_vector.x-25,
                             usablePlanes[i].world_vector.y,
@@ -436,7 +599,7 @@
                             && crossVector2(sp21, sp2m) > 0 && crossVector2(sp14, sp1m) > 0)) {
                         insidePlanes.push(usablePlanes[i]);
                     }
-                 }
+                }
                 else if(usablePlanes[i].world_vector.z % 50 == 0){
                     //center point of vertical planes which can be placed with cube
                     /*
@@ -495,6 +658,10 @@
                 }
                 else ;
             }
+            return insidePlanes;
+        }
+        function genInsidePlane(insidePlanes) {
+            var insidePlane = new Coors(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
             if(insidePlanes.length > 0) {
                 //console.log(insidePlanes);
                 insidePlane = insidePlanes[0];
@@ -504,108 +671,10 @@
                     }
                 }
             }
-            if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
-            else {
-                var px = insidePlane.world_vector.x;
-                var py = insidePlane.world_vector.y;
-                var pz = insidePlane.world_vector.z;
-                if(px % 50 != 0 && pz % 50 != 0) {
-                    var cube = new THREE.Mesh(
-                            new THREE.CubeGeometry(50,50,50),
-                            new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                    var cx = px;
-                    var cy = py + 25;
-                    var cz = pz;
-                    cube.position.x = cx;
-                    cube.position.y = cy;
-                    cube.position.z = cz;
-                    cubesCoors.push(cube.position);
-                    scene.add(cube);
-                    addOutline(cx,cy,cz);
-                    renderer.clear();
-                    render();
-                    updateAfterAdd(cx, cy, cz);
-                }
-                else if(px % 50 == 0){
-                    if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px+25,py-25,pz)) > -1) {
-                        var cube = new THREE.Mesh(
-                                new THREE.CubeGeometry(50,50,50),
-                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                        var cx = px + 25;
-                        var cy = py;
-                        var cz = pz;
-                        cube.position.x = cx;
-                        cube.position.y = cy;
-                        cube.position.z = cz;
-                        cubesCoors.push(cube.position);
-                        scene.add(cube);
-                        addOutline(cx,cy,cz);
-                        renderer.clear();
-                        render();
-                        updateAfterAdd(cx, cy, cz);
-                    }
-                    else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1 && indexOfPlane(new THREE.Vector3(px-25,py-25,pz))> -1) {
-                        var cube = new THREE.Mesh(
-                                new THREE.CubeGeometry(50,50,50),
-                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                        var cx = px - 25;
-                        var cy = py;
-                        var cz = pz;
-                        cube.position.x = cx;
-                        cube.position.y = cy;
-                        cube.position.z = cz;
-                        cubesCoors.push(cube.position);
-                        scene.add(cube);
-                        addOutline(cx,cy,cz);
-                        renderer.clear();
-                        render();
-                        updateAfterAdd(cx, cy, cz);
-                    }
-                }
-                else if(pz % 50 == 0){
-                    if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz+25)) > -1) {
-                        var cube = new THREE.Mesh(
-                                new THREE.CubeGeometry(50,50,50),
-                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                        var cx = px;
-                        var cy = py;
-                        var cz = pz + 25;
-                        cube.position.x = cx;
-                        cube.position.y = cy;
-                        cube.position.z = cz;
-                        cube.castShadow = true;
-                        cubesCoors.push(cube.position);
-                        scene.add(cube);
-                        addOutline(cx,cy,cz);
-                        renderer.clear();
-                        render();
-                        updateAfterAdd(cx, cy, cz);
-                    }
-                    else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1 && indexOfPlane(new THREE.Vector3(px,py-25,pz-25))> -1) {
-                        var cube = new THREE.Mesh(
-                                new THREE.CubeGeometry(50,50,50),
-                                new THREE.MeshLambertMaterial({color: 0x0000ff}));
-                        var cx = px;
-                        var cy = py;
-                        var cz = pz-25;
-                        cube.position.x = cx;
-                        cube.position.y = cy;
-                        cube.position.z = cz;
-                        cubesCoors.push(cube.position);
-                        scene.add(cube);
-                        addOutline(cx,cy,cz);
-                        renderer.clear();
-                        render();
-                        updateAfterAdd(cx, cy, cz);
-                    }
-                }
-            }
-            mouseDowning = 0;
-        };
-        function crossVector2(v1, v2) {
-            return v1.x*v2.y - v1.y*v2.x;
-        };
+            return insidePlane;
+        }
         function addOutline(cx,cy,cz) {
+            var lines = new Array();
             var material = new THREE.LineBasicMaterial({
                 color: 0xff0000
             });
@@ -623,28 +692,28 @@
             downPlane.vertices.push(new THREE.Vector3(cx+25, cy-25, cz-25));
             downPlane.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
 
-            var gSideLine1 = new THREE.Geometry();
-            gSideLine1.vertices.push(new THREE.Vector3(cx-25, cy+25, cz-25));
-            gSideLine1.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
+            var geoSideLine1 = new THREE.Geometry();
+            geoSideLine1.vertices.push(new THREE.Vector3(cx-25, cy+25, cz-25));
+            geoSideLine1.vertices.push(new THREE.Vector3(cx-25, cy-25, cz-25));
 
-            var gSideLine2 = new THREE.Geometry();
-            gSideLine2.vertices.push(new THREE.Vector3(cx-25, cy+25, cz+25));
-            gSideLine2.vertices.push(new THREE.Vector3(cx-25, cy-25, cz+25));
+            var geoSideLine2 = new THREE.Geometry();
+            geoSideLine2.vertices.push(new THREE.Vector3(cx-25, cy+25, cz+25));
+            geoSideLine2.vertices.push(new THREE.Vector3(cx-25, cy-25, cz+25));
 
-            var gSideLine3 = new THREE.Geometry();
-            gSideLine3.vertices.push(new THREE.Vector3(cx+25, cy+25, cz+25));
-            gSideLine3.vertices.push(new THREE.Vector3(cx+25, cy-25, cz+25));
+            var geoSideLine3 = new THREE.Geometry();
+            geoSideLine3.vertices.push(new THREE.Vector3(cx+25, cy+25, cz+25));
+            geoSideLine3.vertices.push(new THREE.Vector3(cx+25, cy-25, cz+25));
 
-            var gSideLine4 = new THREE.Geometry();
-            gSideLine4.vertices.push(new THREE.Vector3(cx+25, cy+25, cz-25));
-            gSideLine4.vertices.push(new THREE.Vector3(cx+25, cy-25, cz-25));
+            var geoSideLine4 = new THREE.Geometry();
+            geoSideLine4.vertices.push(new THREE.Vector3(cx+25, cy+25, cz-25));
+            geoSideLine4.vertices.push(new THREE.Vector3(cx+25, cy-25, cz-25));
 
             var upPlaneOutline = new THREE.Line(upPlane, material);
             var downPlaneOutline = new THREE.Line(downPlane, material);
-            var sideLine1 = new THREE.Line(gSideLine1, material);
-            var sideLine2 = new THREE.Line(gSideLine2, material);
-            var sideLine3 = new THREE.Line(gSideLine3, material);
-            var sideLine4 = new THREE.Line(gSideLine4, material);
+            var sideLine1 = new THREE.Line(geoSideLine1, material);
+            var sideLine2 = new THREE.Line(geoSideLine2, material);
+            var sideLine3 = new THREE.Line(geoSideLine3, material);
+            var sideLine4 = new THREE.Line(geoSideLine4, material);
 
             scene.add(upPlaneOutline);
             scene.add(downPlaneOutline);
@@ -652,6 +721,14 @@
             scene.add(sideLine2);
             scene.add(sideLine3);
             scene.add(sideLine4);
+
+            lines.push(upPlaneOutline);
+            lines.push(downPlaneOutline);
+            lines.push(sideLine1);
+            lines.push(sideLine2);
+            lines.push(sideLine3);
+            lines.push(sideLine4);
+            return lines;
         }
         function updateAfterAdd(cx, cy, cz) {
             var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
@@ -698,6 +775,8 @@
 <!--<p>press '<-' or '->' to rotate the visual angle</p>
 <p>press UpArrow or DownArrow to zoom</p>
 <p>press 'a' to place a cube</p>-->
+<p>drag mouse to change visual angle, scroll mouse to zoom in and out</p>
+<p>click mouse left to add cubes, press 'r' to remove cube</p>
 <span id="s1"></span>
 <span id="s2"></span>
 <span id="s3"></span>
