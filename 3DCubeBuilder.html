@@ -8,15 +8,25 @@
             border: none;
             cursor: pointer;
             width: 100%;
-            height: 600px;
+            height: 450px;
             background-color: #EEEEEE;
         }
     </style>
     <script>
+        function initContext() {
+            var c = document.getElementById('canvas-frame');
+            var ctx = c.getContext('2d');
+            console.log(ctx);
+
+            ctx.font = "20px Georgia";
+            ctx.fillText("drag mouse to change visual angle, scroll mouse to zoom in and out",10,20);
+            ctx.fillText("click mouse left to add cubes, click mouse right to remove cube",10,40);
+        }
+
         var renderer;
         var width;
         var height;
-        function initThree() {
+        function initRenderer() {
             width = document.getElementById('canvas-frame').clientWidth;
             height = document.getElementById('canvas-frame').clientHeight;
             renderer = new THREE.WebGLRenderer({
@@ -190,7 +200,7 @@
 
         var render = function(){renderer.render(scene, camera)};
         function threeStart() {
-            initThree();
+            initRenderer();
             initCamera();
             initScene();
             initLight();
@@ -199,6 +209,7 @@
             render();
             initProjector();
             initCoors();
+            //initContext();
         };
 
         /*key pressed event*/
