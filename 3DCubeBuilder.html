@@ -2,7 +2,7 @@
 <html>
 <head>
     <title></title>
-    <script src="three.js"></script>
+    <script language = "javascript" src="three.js"></script>
     <style type="text/css">
         div#canvas-frame {
             border: none;
@@ -202,7 +202,7 @@
         };
 
         /*key pressed event*/
-        document.onkeydown = onKeyDown;
+        /*document.onkeydown = onKeyDown;
         function onKeyDown(ev) {
             ev = ev || window.event;
             var keyCode = getKeyCode(ev);
@@ -234,66 +234,6 @@
                 render();
             }
             else if(keyCode == 82) { //remove objects
-                var insidePlanes = genInsidePlanes({x:mouseX,y:mouseY});
-                console.log(insidePlanes);
-                var insidePlane = genInsidePlane(insidePlanes);
-                console.log(insidePlane);
-                console.log(cubes);
-                var cx = 0, cy = 0, cz = 0;
-                if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
-                else {
-                    var px = insidePlane.world_vector.x;
-                    var py = insidePlane.world_vector.y;
-                    var pz = insidePlane.world_vector.z;
-                    if(px % 50 != 0 && pz % 50 != 0) {
-                        cx = px;
-                        cy = py - 25;
-                        cz = pz;
-                    }
-                    else if(px % 50 == 0){
-                        if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1) {
-                            cx = px - 25;
-                            cy = py;
-                            cz = pz;
-                        }
-                        else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1) {
-                            cx = px + 25;
-                            cy = py;
-                            cz = pz;
-                        }
-                    }
-                    else if(pz % 50 == 0){
-                        if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1) {
-                            cx = px;
-                            cy = py;
-                            cz = pz - 25;
-                        }
-                        else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1) {
-                            cx = px;
-                            cy = py;
-                            cz = pz + 25;
-                        }
-                    }
-                }
-                if(cx == 0 && cy == 0 && cz == 0)
-                    return ;
-                var upperCubeIndex = indexOfCube(new THREE.Vector3(cx, cy + 50, cz));
-                if(upperCubeIndex > -1)
-                    return ;
-                var cubeIndex = indexOfCube(new THREE.Vector3(cx, cy, cz));
-                if(cubeIndex < 0)
-                    return ;
-                scene.remove(cubes[cubeIndex].cube);
-                scene.remove(cubes[cubeIndex].lines[0]);
-                scene.remove(cubes[cubeIndex].lines[1]);
-                scene.remove(cubes[cubeIndex].lines[2]);
-                scene.remove(cubes[cubeIndex].lines[3]);
-                scene.remove(cubes[cubeIndex].lines[4]);
-                scene.remove(cubes[cubeIndex].lines[5]);
-                removeCube(cubeIndex);
-                renderer.clear();
-                render();
-                updateAfterDelete(cx, cy, cz);
             }
         };
         function getKeyCode(ev)
@@ -304,45 +244,7 @@
             else if(ev.which) // Netscape/Firefox/Opera
                 kc = ev.which;
             return kc;
-        };
-        function updateAfterDelete(cx, cy, cz) {
-            var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
-            var downPlaneCoor = new THREE.Vector3(cx, cy - 25, cz);
-            removePlane(indexOfPlane(upPlaneCoor));
-            usablePlanes.push(new Coors(downPlaneCoor, toScreenXY(downPlaneCoor)));
-
-            var sidePlaneCoor1 = new THREE.Vector3(cx - 25, cy, cz);
-            if(indexOfCube(new THREE.Vector3(cx - 50, cy, cz)) < 0) { // remove the side plane
-                removePlane(indexOfPlane(sidePlaneCoor1));
-            }
-            else { // add the side plane
-                usablePlanes.push(new Coors(sidePlaneCoor1, toScreenXY(sidePlaneCoor1)));
-            }
-
-            var sidePlaneCoor2 = new THREE.Vector3(cx + 25, cy, cz);
-            if(indexOfCube(new THREE.Vector3(cx + 50, cy, cz)) < 0) { // remove the side plane
-                removePlane(indexOfPlane(sidePlaneCoor2));
-            }
-            else { // add the side plane
-                usablePlanes.push(new Coors(sidePlaneCoor2, toScreenXY(sidePlaneCoor2)));
-            }
-
-            var sidePlaneCoor3 = new THREE.Vector3(cx, cy, cz - 25);
-            if(indexOfCube(new THREE.Vector3(cx, cy, cz - 50)) < 0) { // remove the side plane
-                removePlane(indexOfPlane(sidePlaneCoor3));
-            }
-            else { // add the side plane
-                usablePlanes.push(new Coors(sidePlaneCoor3, toScreenXY(sidePlaneCoor3)));
-            }
-
-            var sidePlaneCoor4 = new THREE.Vector3(cx, cy, cz + 25);
-            if(indexOfCube(new THREE.Vector3(cx, cy, cz + 50)) < 0) { // remove the side plane
-                removePlane(indexOfPlane(sidePlaneCoor4));
-            }
-            else { // add the side plane
-                usablePlanes.push(new Coors(sidePlaneCoor4, toScreenXY(sidePlaneCoor4)));
-            }
-        }
+        };*/
 
         /*mouse wheel event*/
         /*注册事件*/
@@ -423,6 +325,113 @@
             mouseDowning = 0;
             //updateCoors();
         };
+        /*mouse click event*/
+        /*mouse right click*/
+        document.oncontextmenu = contextMenu;
+        function contextMenu() {
+            document.getElementById("s4").innerHTML = "right click";
+            var insidePlanes = genInsidePlanes({x:mouseX,y:mouseY});
+            console.log(insidePlanes);
+            var insidePlane = genInsidePlane(insidePlanes);
+            console.log(insidePlane);
+            console.log(cubes);
+            var cx = 0, cy = 0, cz = 0;
+            if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
+            else {
+                var px = insidePlane.world_vector.x;
+                var py = insidePlane.world_vector.y;
+                var pz = insidePlane.world_vector.z;
+                if(px % 50 != 0 && pz % 50 != 0) {
+                    cx = px;
+                    cy = py - 25;
+                    cz = pz;
+                }
+                else if(px % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px-25,py,pz)) > -1) {
+                        cx = px - 25;
+                        cy = py;
+                        cz = pz;
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px+25,py,pz)) > -1) {
+                        cx = px + 25;
+                        cy = py;
+                        cz = pz;
+                    }
+                }
+                else if(pz % 50 == 0){
+                    if(indexOfCube(new THREE.Vector3(px,py,pz-25)) > -1) {
+                        cx = px;
+                        cy = py;
+                        cz = pz - 25;
+                    }
+                    else if(indexOfCube(new THREE.Vector3(px,py,pz+25)) > -1) {
+                        cx = px;
+                        cy = py;
+                        cz = pz + 25;
+                    }
+                }
+            }
+            if(cx == 0 && cy == 0 && cz == 0)
+                return false;
+            var upperCubeIndex = indexOfCube(new THREE.Vector3(cx, cy + 50, cz));
+            if(upperCubeIndex > -1)
+                return false;
+            var cubeIndex = indexOfCube(new THREE.Vector3(cx, cy, cz));
+            if(cubeIndex < 0)
+                return false;
+            scene.remove(cubes[cubeIndex].cube);
+            scene.remove(cubes[cubeIndex].lines[0]);
+            scene.remove(cubes[cubeIndex].lines[1]);
+            scene.remove(cubes[cubeIndex].lines[2]);
+            scene.remove(cubes[cubeIndex].lines[3]);
+            scene.remove(cubes[cubeIndex].lines[4]);
+            scene.remove(cubes[cubeIndex].lines[5]);
+            removeCube(cubeIndex);
+            renderer.clear();
+            render();
+            updateAfterDelete(cx, cy, cz);
+            return false;
+        };
+        function updateAfterDelete(cx, cy, cz) {
+            var upPlaneCoor = new THREE.Vector3(cx, cy + 25, cz);
+            var downPlaneCoor = new THREE.Vector3(cx, cy - 25, cz);
+            removePlane(indexOfPlane(upPlaneCoor));
+            usablePlanes.push(new Coors(downPlaneCoor, toScreenXY(downPlaneCoor)));
+
+            var sidePlaneCoor1 = new THREE.Vector3(cx - 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx - 50, cy, cz)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor1));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor1, toScreenXY(sidePlaneCoor1)));
+            }
+
+            var sidePlaneCoor2 = new THREE.Vector3(cx + 25, cy, cz);
+            if(indexOfCube(new THREE.Vector3(cx + 50, cy, cz)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor2));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor2, toScreenXY(sidePlaneCoor2)));
+            }
+
+            var sidePlaneCoor3 = new THREE.Vector3(cx, cy, cz - 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz - 50)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor3));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor3, toScreenXY(sidePlaneCoor3)));
+            }
+
+            var sidePlaneCoor4 = new THREE.Vector3(cx, cy, cz + 25);
+            if(indexOfCube(new THREE.Vector3(cx, cy, cz + 50)) < 0) { // remove the side plane
+                removePlane(indexOfPlane(sidePlaneCoor4));
+            }
+            else { // add the side plane
+                usablePlanes.push(new Coors(sidePlaneCoor4, toScreenXY(sidePlaneCoor4)));
+            }
+        }
+
+        /*mouse left click*/
         document.onclick = mouseClick;
         function mouseClick(ev) {
             ev = ev || window.event;
@@ -434,6 +443,8 @@
             }
             if(ev.button == 0)
                 document.getElementById("s4").innerHTML = "left click";
+            if(ev.button == 2)
+                document.getElementById("s4").innerHTML = "right click";
             var insidePlanes = genInsidePlanes({x:mouseX,y:mouseY});
             var insidePlane = genInsidePlane(insidePlanes);
             if(insidePlane.world_vector.x == 0 && insidePlane.world_vector.y == 0 && insidePlane.world_vector.z == 0) ;
@@ -776,7 +787,7 @@
 <p>press UpArrow or DownArrow to zoom</p>
 <p>press 'a' to place a cube</p>-->
 <p>drag mouse to change visual angle, scroll mouse to zoom in and out</p>
-<p>click mouse left to add cubes, press 'r' to remove cube</p>
+<p>click mouse left to add cubes, click mouse right to remove cube</p>
 <span id="s1"></span>
 <span id="s2"></span>
 <span id="s3"></span>
