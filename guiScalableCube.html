@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>canvas { width: 100%; height: 100% }</style>
+    <script src="three.js"></script>
+    <script src="dat.gui.min.js"></script>
+</head>
+<body>
+<script>
+    var scene = new THREE.Scene();
+
+    var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 10000);
+    camera.position.x = 60;
+    camera.position.z = 600;
+    camera.position.y = 60;
+
+    var renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    /*objects*/
+    var cube = new THREE.Mesh(
+            new THREE.CubeGeometry(50,50,50),
+            new THREE.MeshLambertMaterial({color: 0xFF0000}));
+    scene.add(cube);
+
+    var light = new THREE.SpotLight();
+    light.position.set( 170, 330, -160 );
+    scene.add(light);
+
+    var gui = new dat.GUI();
+    gui.add(cube.scale, 'x').min(0.1).max(10).step(0.1).onChange(function() { renderer.render(scene, camera); });
+    gui.add(cube.scale, 'y', 0.1, 10, 0.1).onChange(function() { renderer.render(scene, camera); });
+    gui.add(cube.scale, 'z', 0.1, 10, 0.1).onChange(function() { renderer.render(scene, camera); });
+
+    renderer.render(scene, camera);
+</script>
+</body>
+</html>
