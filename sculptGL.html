@@ -27,6 +27,13 @@
             background-color: #EEEEEE;
         }
     </style>
+    <style type="text/css">
+        .underline {
+            position: relative;
+            left: 0px;
+            bottom: 10px;
+        }
+    </style>
     <script type="text/javascript">
         var renderer;
         var width;
@@ -130,16 +137,9 @@
 
         var controls;
         function initControls() {
-            //controls = new THREE.TrackballControls(camera);
             controls = new THREE.OrbitControls(camera, renderer.domElement);
-            //controls = new THREE.TrackballControls(camera, renderer.domElement);
-            controls.rotateSpeed = 1.0;
-            controls.zoomSpeed = 1.0;
-            controls.panSpeed = 1.0;
-//        controls.noZoom=false;
-//        controls.noPan=false;
-            controls.staticMoving = true;
-//        controls.dynamicDampingFactor=0.3;
+            controls.damping = 0.2;
+            controls.addEventListener( 'change', render );
         }
 
         /*gui*/
@@ -162,8 +162,14 @@
 
         var render = function(){
             renderer.render(scene, camera);
-            controls.update();
+            //controls.update();
         };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+        }
+
         function threeStart() {
             initGui();
             initRenderer();
@@ -176,6 +182,7 @@
             renderer.clear();
             render();
             initProjector();
+            animate();
             //initContext();
         };
 
@@ -183,6 +190,7 @@
         var mouseDowning = 0;
         var mouseDragging = 0;
         /*mouse move event*/
+        //document.onmousemove = mouseMove;
         function mouseMove(ev){
             ev = ev || window.event;
             var mousePos = mouseCoords(ev);
@@ -240,19 +248,33 @@
             if(ev.button == 2)
                 document.getElementById("s4").innerHTML = "right click";
         }
+        /*mouse wheel event*/
+        /*注册事件*/
+        if(document.addEventListener){
+            document.addEventListener('DOMMouseScroll',scrollMove,false);
+        }//W3C
+        function scrollMove(ev) {
+            ev = ev || window.event;
+            if(ev.wheelDelta){//IE/Opera/Chrome
+                document.getElementById("s4").innerHTML = ev.wheelDelta;
+                camera.fov *= Math.pow(0.99,ev.wheelDelta/30);
+                //camera.updateProjectionMatrix();
+                render();
+            }
+            else if(ev.detail){//Firefox
+                //t2.value=ev.detail;
+            }
+            //updateCoors();
+        }
+
     </script>
 </head>
 <body onload= "threeStart();">
-<span id="canvas-frame" onmousemove = "mouseMove();"  onmousedown = "mouseDown();" onmouseup = "mouseUp();"
-      oncontextmenu = "contextMenu();" onclick = "mouseClick();" ></span>
-<!--<span id="canvas-frame"></span>-->
+<span id="canvas-frame"></span>
 <span id="gui-container"></span>
-<!--<p>press '<-' or '->' to rotate the visual angle</p>
-<p>press UpArrow or DownArrow to zoom</p>
-<p>press 'a' to place a cube</p>-->
-<span id="s1"></span>
-<span id="s2"></span>
-<span id="s3"></span>
-<span id="s4"></span>
+<span id="s1" class = "underline"></span>
+<span id="s2" class = "underline"></span>
+<span id="s3" class = "underline"></span>
+<span id="s4" class = "underline"></span>
 </body>
 </html>
