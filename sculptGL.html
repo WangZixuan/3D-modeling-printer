@@ -6,6 +6,7 @@
     <script src= "three.js-master/examples/js/controls/OrbitControls.js"></script>
     <script src="three.js-master/examples/js/libs/dat.gui.min.js"></script>
     <script src="three.js-master/examples/js/renderers/Projector.js"></script>
+    <script src="sculptGUI.js"></script>
     <style type="text/css">
         #canvas-frame {
             position:absolute;
@@ -28,9 +29,30 @@
         }
     </style>
     <style type="text/css">
-        .underline {
-            position: relative;
+        .underline1 {
+            position: absolute;
             left: 0px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline2 {
+            position: absolute;
+            left: 50px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline3 {
+            position: absolute;
+            left: 100px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline4 {
+            position: absolute;
+            left: 150px;
             bottom: 10px;
         }
     </style>
@@ -47,7 +69,7 @@
             });
             renderer.setSize(width, height);
             document.getElementById('canvas-frame').appendChild(renderer.domElement);
-            renderer.setClearColor(0xFFFFFF, 1.0);
+            renderer.setClearColor(0xcccccc, 1.0);
             render.shadowMapEnable = true;
         };
 
@@ -142,27 +164,8 @@
             controls.addEventListener( 'change', render );
         }
 
-        /*gui*/
-        var gui;
-        var subGuiR;
-        var subGuiT;
-        var subGuiS;
-        function initGui() {
-            gui = new dat.GUI({ autoPlace: false });
-            document.getElementById('gui-container').appendChild(gui.domElement);
-            subGuiR = gui.addFolder('RENDERING');
-            subGuiT = gui.addFolder('TOPOLOGY');
-            subGuiS = gui.addFolder('SCULPTING & PAINTING');
-            var tool = {
-            Tool:0
-            };
-            subGuiS.add(tool, 'Tool', { Brush: 1, Inflate: 2, Twist: 3 });
-            //subGuiS.add(brushToolsGui);
-        }
-
         var render = function(){
             renderer.render(scene, camera);
-            //controls.update();
         };
 
         function animate() {
@@ -171,18 +174,19 @@
         }
 
         function threeStart() {
-            initGui();
             initRenderer();
             initCamera();
             initScene();
             initLight();
             initObject();
             initControls();
-            //initToolsGui();
             renderer.clear();
             render();
             initProjector();
             animate();
+
+            initGui(cube, render);
+            initDragToolsGui(cube, render);
             //initContext();
         };
 
@@ -190,7 +194,6 @@
         var mouseDowning = 0;
         var mouseDragging = 0;
         /*mouse move event*/
-        //document.onmousemove = mouseMove;
         function mouseMove(ev){
             ev = ev || window.event;
             var mousePos = mouseCoords(ev);
@@ -203,21 +206,34 @@
             if(mouseDowning == 1) {
                 mouseDragging = 1;
                 document.getElementById("s3").innerHTML = "pressing";
-                render();
             }
             else {
                 document.getElementById("s3").innerHTML = "unpressing";
             }
         };
         function mouseCoords(ev){
+            var offset = findOffset(renderer.domElement);
             if(ev.pageX || ev.pageY){
-                return {x:ev.pageX, y:ev.pageY};
+                return {x:ev.pageX - offset.left, y:ev.pageY - offset.top};
             }
             return {
-                x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,
-                y:ev.clientY + document.body.scrollTop  - document.body.clientTop
+                x:ev.clientX + document.body.scrollLeft - document.body.clientLeft  - offset.left,
+                y:ev.clientY + document.body.scrollTop  - document.body.clientTop - offset.top
             };
         };
+        function findOffset(element) {
+            var pos = new Object();
+            pos.left = pos.top = 0;
+            if (element.offsetParent)
+            {
+                do
+                {
+                    pos.left += element.offsetLeft;
+                    pos.top += element.offsetTop;
+                } while (element = element.offsetParent);
+            }
+            return pos;
+        }
         /*mouse down event*/
         function mouseDown(ev){
             ev = ev || window.event;
@@ -258,8 +274,6 @@
             if(ev.wheelDelta){//IE/Opera/Chrome
                 document.getElementById("s4").innerHTML = ev.wheelDelta;
                 camera.fov *= Math.pow(0.99,ev.wheelDelta/30);
-                //camera.updateProjectionMatrix();
-                render();
             }
             else if(ev.detail){//Firefox
                 //t2.value=ev.detail;
@@ -272,9 +286,14 @@
 <body onload= "threeStart();">
 <span id="canvas-frame"></span>
 <span id="gui-container"></span>
-<span id="s1" class = "underline"></span>
-<span id="s2" class = "underline"></span>
-<span id="s3" class = "underline"></span>
-<span id="s4" class = "underline"></span>
+<script type = "text/javascript">
+    document.getElementById("canvas-frame").addEventListener( 'mousedown', mouseDown, false );
+    document.getElementById("canvas-frame").addEventListener( 'mousemove', mouseMove, false );
+    document.getElementById("canvas-frame").addEventListener( 'mouseup', mouseUp, false );
+</script>
+<span id="s1" class = "underline1"></span>
+<span id="s2" class = "underline2"></span>
+<span id="s3" class = "underline3"></span>
+<span id="s4" class = "underline4"></span>
 </body>
 </html>
