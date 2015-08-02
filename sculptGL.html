@@ -6,6 +6,8 @@
     <script src= "three.js-master/examples/js/controls/OrbitControls.js"></script>
     <script src="three.js-master/examples/js/libs/dat.gui.min.js"></script>
     <script src="three.js-master/examples/js/renderers/Projector.js"></script>
+    <script src="csg.js-master/csg.js"></script>
+    <script src="ThreeCSG-master/ThreeCSG.js"></script>
     <script src="sculptGUI.js"></script>
     <style type="text/css">
         #canvas-frame {
@@ -94,14 +96,19 @@
             camera.lookAt({x:0,y:0,z:0});
         };
 
-        var spotLight;
+        var spotLight1;
+        var spotLight2;
         var ambientLight;
         function initLight() {
-            spotLight = new THREE.SpotLight(0xffffff);
-            spotLight.position.set( 500, 500, 500 );
-            spotLight.castShadow = true;
-            //spotLight.intensity = 5;
-            scene.add(spotLight);
+            spotLight1 = new THREE.SpotLight(0xffffff);
+            spotLight1.position.set( 500, 500, 500 );
+            spotLight1.castShadow = true;
+            scene.add(spotLight1);
+
+            spotLight2 = new THREE.SpotLight(0xffffff);
+            spotLight2.position.set( -500, -500, -500 );
+            spotLight2.castShadow = true;
+            scene.add(spotLight2);
 
             ambientLight = new THREE.AmbientLight(0x444444);
             scene.add(ambientLight);
@@ -109,15 +116,21 @@
 
         /*objects*/
         var cube;
+        var sphere;
         var planeGeo;
         function initObject() {
             cube = new THREE.Mesh(
                     new THREE.BoxGeometry(50,50,50),
                     new THREE.MeshLambertMaterial({color: 0x0000ff}));
-            cube.position.x = 0;
-            cube.position.y = 0;
-            cube.position.z = 0;
-            scene.add(cube);
+            var csgCube = new ThreeBSP(cube);
+
+            sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(30, 30, 30),
+                    new THREE.MeshLambertMaterial({color: 0x0000ff}));
+            var csgSphere = new ThreeBSP(sphere);
+
+            var csgU = csgCube.union(csgSphere);
+            scene.add(csgU.toMesh(new THREE.MeshLambertMaterial({color: 0x0000ff})));
 
             planeGeo = new THREE.PlaneGeometry(150, 150, 15, 15);
             var planeMat = new THREE.MeshLambertMaterial({color: 0xff0000, wireframe: true});
