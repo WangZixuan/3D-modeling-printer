@@ -54,7 +54,7 @@
     <style type="text/css">
         .underline4 {
             position: absolute;
-            left: 150px;
+            left: 200px;
             bottom: 10px;
         }
     </style>
@@ -272,6 +272,7 @@
                 mouseDragging = 0;
                 return ;
             }
+            console.log(ev.button);
             if(ev.button == 0)
                 document.getElementById("s4").innerHTML = "left click";
             if(ev.button == 2)
@@ -303,6 +304,7 @@
     document.getElementById("canvas-frame").addEventListener( 'mousedown', mouseDown, false );
     document.getElementById("canvas-frame").addEventListener( 'mousemove', mouseMove, false );
     document.getElementById("canvas-frame").addEventListener( 'mouseup', mouseUp, false );
+    document.getElementById("canvas-frame").addEventListener( 'click', mouseClick, false );
 </script>
 <span id="s1" class = "underline1"></span>
 <span id="s2" class = "underline2"></span>
