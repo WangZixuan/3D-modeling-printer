@@ -60,7 +60,7 @@
 				//loader manager
 				var manager = new THREE.LoadingManager();
 				manager.onProgress = function ( item, loaded, total ) {
-					console.log( item, loaded, total );
+					//console.log( item, loaded, total );
 				};
 				
 				var texture = new THREE.Texture();
@@ -104,14 +104,14 @@
 					var arrayObj = new Array();　
 					for (x in face)
 					{
-						if (x[0]==1||x[1]==1||x[2]==1)
+						if (x.a==1||x.b==1||x.c==1)
 							arrayObj.push(x);
 					}//Loop to get nearest points?
 					
 					point[1].x +=1;
 					
 					for (x in arrayObj)
-						point[x[1]].x +=0.5;
+						point[x.a].x +=0.5;
 						
 						
 					var allNormalVectors = [0, 0, 0];	
@@ -119,23 +119,23 @@
 					{
 						var normalVector = new Array();
 						//Calc the vertix vector of this face
-						var a=x[0];
-						var b=x[1];
-						var c=x[2];
+						var a=x.a;
+						var b=x.b;
+						var c=x.c;
 						
 						var vec1 = new Array();
-						vec1.push(point[a][0]-point[b][0]);
-						vec1.push(point[a][1]-point[b][1]);
-						vec1.push(point[a][2]-point[b][2]);
+						vec1.push(point[a].x-point[b].x);
+						vec1.push(point[a].y-point[b].y);
+						vec1.push(point[a].z-point[b].z);
 						
 						var vec2 = new Array();
-						vec2.push(point[a][0]-point[c][0]);
-						vec2.push(point[a][1]-point[c][1]);
-						vec2.push(point[a][2]-point[c][2]);
+						vec2.push(point[a].x-point[c].x);
+						vec2.push(point[a].y-point[c].y);
+						vec2.push(point[a].z-point[c].z);
 						
-						normalVector.push(vec1[1]*vec2[2]-vec1[2]*vec2[1]);
-						normalVector.push(vec1[2]*vec2[0]-vec1[0]*vec2[2]);
-						normalVector.push(vec1[0]*vec2[1]-vec1[1]*vec2[0]);
+						normalVector.push(vec1.y*vec2.z-vec1.z*vec2.y);
+						normalVector.push(vec1.z*vec2.x-vec1.x*vec2.z);
+						normalVector.push(vec1.x*vec2.y-vec1.y*vec2.x);
 						
 						//Normalized.
 						var denominator = Math.sqrt(normalVector[0] * normalVector[0] + normalVector[1] * normalVector[1] + normalVector[2] * normalVector[2]); 
@@ -146,7 +146,12 @@
 						
 					}	
 										
-					console.log(face);
+					//console.log(face);
+					
+					console.log(face[0].a);
+					console.log(point[face[0].a]);
+					point[face[0].a].x += 10;
+					console.log(point[face[0].a]);
 					
 
 				});
