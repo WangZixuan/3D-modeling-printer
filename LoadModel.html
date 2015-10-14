@@ -96,6 +96,8 @@
 					
 					var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );
 					
+					object.children[0].geometry.dynamic = true;
+					
 					var point = geometry.vertices;//Get points
 					
 					var face = geometry.faces;//Get faces
@@ -152,6 +154,9 @@
 					console.log(point[face[0].a]);
 					point[face[0].a].x += 10;
 					console.log(point[face[0].a]);
+					
+					object.children[0].geometry.verticesNeedUpdate = true;
+					
 					
 
 				});
