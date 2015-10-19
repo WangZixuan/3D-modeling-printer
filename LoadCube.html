@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Pumpkin loader</title>
+		<title>Cube loader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -34,7 +34,9 @@
 			
 			var container;
 			var camera, scene, renderer;
-			var point, face;
+			var point , face;
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
 			init();
 			initControls();
 			animate();
@@ -50,75 +52,32 @@
 				
 				scene = new THREE.Scene();
 
-				var ambient = new THREE.AmbientLight( 0x404040 );
+				var ambient = new THREE.AmbientLight( 0x101030 );
 				scene.add( ambient );
 
 				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
-				directionalLight.position.set( 10,10,10);
+				directionalLight.position.set( 0, 0, 1 );
 				scene.add( directionalLight );
 				
-				//loader manager
-				var manager = new THREE.LoadingManager();
-				manager.onProgress = function ( item, loaded, total ) {
-					//console.log( item, loaded, total );
-				};
 				
-				var texture = new THREE.Texture();
+				geometry = new THREE.BoxGeometry( 1, 1, 1, 2, 2, 2 );
+				material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+				object = new THREE.Mesh( geometry, material );
+							
+				point = geometry.vertices;//Get points				
+				face = geometry.faces;//Get faces
 				
-				var loader = new THREE.ImageLoader( manager );
-				loader.load( 'Pumpkin_D.jpg', function ( image ) {
-
-					texture.image = image;
-					texture.needsUpdate = true;
-
-				} );
 				
-				// model
-
-				var loader = new THREE.OBJLoader( manager );
-				loader.load( 'Pumpkin.obj', function ( object ) {
-					
-					object.traverse( function ( child ) {
-
-						if ( child instanceof THREE.Mesh ) {
-
-							child.material.map = texture;
-						}
-
-					} );
-
-					object.position.x = 0;
-					object.position.y = 0;
-					object.position.z = 0;
-					scene.add( object );
-					
-					//console.log(object);
-					
-					var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );
-					
-					object.children[0].geometry.dynamic = true;
-					
-					point = geometry.vertices;//Get points
-					
-					face = geometry.faces;//Get faces
-										
-					//console.log(face);
-					
-					//console.log(face[0].a);
-					//console.log(point[face[0].a]);
-
-					//console.log(point[face[0].a]);
-					
-					object.children[0].geometry.verticesNeedUpdate = true;
-					
-					
-
-				});
-
+				wireframe = new THREE.WireframeHelper( object, 0x00ff00 );
+				
+				scene.add( object );
+				scene.add( wireframe );
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
+				
+				container.addEventListener( 'mousemove', onMouseMove, false );
 			
 			}
 			
@@ -132,7 +91,7 @@
 	
 			function render(){
 				camera.lookAt( scene.position );
-				
+						
 				renderer.render(scene, camera);
 				
 			};
@@ -140,8 +99,36 @@
 			function animate() {
 				requestAnimationFrame(animate);
 				//controls.update();
-				point[face[0].a].x += 1;
+				point[face[0].c].x += 1;
+				//point[face[0].a].y += 1;
+				//point[face[0].a].z += 1;
 				render();
+			}
+			
+			function onMouseMove( event ) {
+
+				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+				raycaster.setFromCamera( mouse, camera );
+
+				// See if the ray from the camera into the world hits one of our meshes
+				var intersects = raycaster.intersectObject( object );
+
+				//console.log(intersects.length);
+				
+				if (intersects.length != 0)
+				{
+					//console.log(intersects[0].faceIndex);//Get face index from mouse event!!!
+				}
+
+				geometry.computeFaceNormals();
+				geometry.computeVertexNormals(true);
+				
+				console.log(face[0].normal);//Get normal vector for each face!!!
+				
+				renderer.render(scene, camera);
+
+
 			}
 			
 						
