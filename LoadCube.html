@@ -34,7 +34,7 @@
 			
 			var container;
 			var camera, scene, renderer;
-			var point , face;
+			var points , faces;
 			var raycaster = new THREE.Raycaster();
 			var mouse = new THREE.Vector2();
 			init();
@@ -64,8 +64,8 @@
 				material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
 				object = new THREE.Mesh( geometry, material );
 							
-				point = geometry.vertices;//Get points				
-				face = geometry.faces;//Get faces
+				points = geometry.vertices;//Get points				
+				faces = geometry.faces;//Get faces
 				
 				
 				wireframe = new THREE.WireframeHelper( object, 0x00ff00 );
@@ -77,7 +77,7 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				container.appendChild( renderer.domElement );
 				
-				container.addEventListener( 'mousemove', onMouseMove, false );
+				container.addEventListener( 'click', onclick, false );
 			
 			}
 			
@@ -99,18 +99,18 @@
 			function animate() {
 				requestAnimationFrame(animate);
 				//controls.update();
-				point[face[0].c].x += 1;
+				//points[faces[0].c].x += 1;
 				//point[face[0].a].y += 1;
 				//point[face[0].a].z += 1;
 				render();
 			}
 			
-			function onMouseMove( event ) {
+			function onclick( event ) {
 
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 				raycaster.setFromCamera( mouse, camera );
-
+/*
 				// See if the ray from the camera into the world hits one of our meshes
 				var intersects = raycaster.intersectObject( object );
 
@@ -119,15 +119,87 @@
 				if (intersects.length != 0)
 				{
 					//console.log(intersects[0].faceIndex);//Get face index from mouse event!!!
+					
+					//3 points of this face:
+					var point3 = [];
+					point3.push(faces[intersects[0].faceIndex].a);
+					point3.push(faces[intersects[0].faceIndex].b);
+					point3.push(faces[intersects[0].faceIndex].c);
+			
+					var connectedFace = [];
+					//New an array to store all faces that is connected to this face.
+					for(var i=0; i<faces.length; ++i)
+					{
+						var thesePoints = new Array(faces[i].a, faces[i].b, faces[i].c);
+						
+						if (point3[0] == thesePoints[0] || point3[0] == thesePoints[1] ||point3[0] == thesePoints[2])
+						{
+							connectedFace.push(i);
+							break;
+						}
+						if (point3[1] == thesePoints[0] || point3[1] == thesePoints[1] ||point3[1] == thesePoints[2])
+						{
+							connectedFace.push(i);
+							break;
+						}
+						if (point3[2] == thesePoints[0] || point3[2] == thesePoints[1] ||point3[2] == thesePoints[2])
+						{
+							connectedFace.push(i);
+							break;
+						}
+					}
+					
+					//Now I get connected faces to the specific face.
+					
+					//Next calculate sum of all face normals.
+					
+					var sum = new Array(0,0,0);
+					for (var i=0; i<connectedFace.length; ++i)
+					{
+						sum[0]+=faces[connectedFace[i]].normal.x;
+						sum[1]+=faces[connectedFace[i]].normal.y;
+						sum[2]+=faces[connectedFace[i]].normal.z;
+					}
+					
+					//console.log("now it is "+point3);
+					
+					sum[0]+=faces[intersects[0].faceIndex].normal.x;
+					sum[1]+=faces[intersects[0].faceIndex].normal.y;
+					sum[2]+=faces[intersects[0].faceIndex].normal.z;
+					
+					//Normalized.
+					sumsum = Math.pow(sum[0], 2) + Math.pow(sum[1], 2) + Math.pow(sum[2], 2);  
+					sumsum = Math.sqrt(sumsum);
+					sum[0] = sum[0] / sumsum;
+					sum[1] = sum[1] / sumsum;
+					sum[2] = sum[2] / sumsum;
+					//So now we have direction...
+					
+					//Three points of the face, each point having three directions.
+					points[faces[intersects[0].faceIndex].a].x += 1;
+					points[faces[intersects[0].faceIndex].b].x += 1;
+					points[faces[intersects[0].faceIndex].c].x += 1;
+					
+					points[faces[intersects[0].faceIndex].a].y += sum[1] / sum[0];
+					points[faces[intersects[0].faceIndex].b].y += sum[1] / sum[0];
+					points[faces[intersects[0].faceIndex].c].y += sum[1] / sum[0];
+					
+					points[faces[intersects[0].faceIndex].a].z += sum[2] / sum[0];
+					points[faces[intersects[0].faceIndex].b].z += sum[2] / sum[0];
+					points[faces[intersects[0].faceIndex].c].z += sum[2] / sum[0];
+				
 				}
-
-				geometry.computeFaceNormals();
-				geometry.computeVertexNormals(true);
+	*/	
+	requestAnimationFrame(animate);		
+	console.log("before ");
+	console.log(points[faces[0].c]);
+				points[faces[0].c].x += 1;
+	console.log("after ");
+	console.log(points[faces[0].c]);
+	
 				
-				console.log(face[0].normal);//Get normal vector for each face!!!
 				
-				renderer.render(scene, camera);
-
+				render();
 
 			}
 			
