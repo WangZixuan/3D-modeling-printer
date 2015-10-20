@@ -98,10 +98,6 @@
 	
 			function animate() {
 				requestAnimationFrame(animate);
-				//controls.update();
-				//points[faces[0].c].x += 1;
-				//point[face[0].a].y += 1;
-				//point[face[0].a].z += 1;
 				render();
 			}
 			
@@ -180,16 +176,16 @@
 					
 					//Three points of the face, each point having three directions.
 					points[faces[intersects[0].faceIndex].a].x += 3 * sum[0] / sumsum;
-					// points[faces[intersects[0].faceIndex].b].x += 0.01;
-					// points[faces[intersects[0].faceIndex].c].x += 0.01;
+					points[faces[intersects[0].faceIndex].b].x += 3 * sum[0] / sumsum;
+					points[faces[intersects[0].faceIndex].c].x += 3 * sum[0] / sumsum;
 					
 					points[faces[intersects[0].faceIndex].a].y += 3 * sum[1] / sumsum;
-					// points[faces[intersects[0].faceIndex].b].y += sum[1] / sum[0];
-					// points[faces[intersects[0].faceIndex].c].y += sum[1] / sum[0];
+					points[faces[intersects[0].faceIndex].b].y += 3 * sum[1] / sumsum;
+					points[faces[intersects[0].faceIndex].c].y += 3 * sum[1] / sumsum;
 					
 					points[faces[intersects[0].faceIndex].a].z += 3 * sum[2] / sumsum;
-					// points[faces[intersects[0].faceIndex].b].z += sum[2] / sum[0];
-					// points[faces[intersects[0].faceIndex].c].z += sum[2] / sum[0];
+					points[faces[intersects[0].faceIndex].b].z += 3 * sum[2] / sumsum;
+					points[faces[intersects[0].faceIndex].c].z += 3 * sum[2] / sumsum;
 					
 					//console.log(points[faces[intersects[0].faceIndex].a]);
 					
