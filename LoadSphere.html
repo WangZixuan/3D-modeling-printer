@@ -31,7 +31,7 @@
 		<script src="OrbitControls.js"></script>
 
 		<script>
-			"use strict";
+			//"use strict";
 			var container;
 			var camera, scene, renderer;
 			var points , faces;
@@ -149,11 +149,17 @@
 									
 					//Calculate sum of all normal vectors of faces in outsideFaces[].
 					var sumOfNormal = new Array(0,0,0);
-					for (let oneFaceIndex of outsideFaces) 
+					
+					var arrayoutsideFaces = Array.from(outsideFaces);
+														
+					for (var oneFaceIndex in arrayoutsideFaces)
+					//for (let oneFaceIndex of outsideFaces) 
 					{
-						sumOfNormal[0]+=faces[oneFaceIndex].normal.x;
-						sumOfNormal[1]+=faces[oneFaceIndex].normal.y;
-						sumOfNormal[2]+=faces[oneFaceIndex].normal.z;
+						console.log("oneFaceIndex");
+						console.log(arrayoutsideFaces[oneFaceIndex]);
+						sumOfNormal[0]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.x;
+						sumOfNormal[1]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.y;
+						sumOfNormal[2]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.z;
 					}
 					
 					//Normalized
@@ -168,126 +174,18 @@
 					points[middlePoint].y += 3 * sumOfNormal[1] / sumsum;
 					points[middlePoint].z += 3 * sumOfNormal[2] / sumsum;
 					
-					for (let onePoint of outsideCirclePoints) 
+					var arrayoutsideCirclePoints = Array.from(outsideCirclePoints);
+					
+					for (var onePoint in arrayoutsideCirclePoints)
+					//for (let onePoint of outsideCirclePoints) 
 					{
-						points[onePoint].x += 1.5 * sumOfNormal[0] / sumsum;
-						points[onePoint].y += 1.5 * sumOfNormal[1] / sumsum;
-						points[onePoint].z += 1.5 * sumOfNormal[2] / sumsum;
+						points[arrayoutsideCirclePoints[onePoint]].x += 1.5 * sumOfNormal[0] / sumsum;
+						points[arrayoutsideCirclePoints[onePoint]].y += 1.5 * sumOfNormal[1] / sumsum;
+						points[arrayoutsideCirclePoints[onePoint]].z += 1.5 * sumOfNormal[2] / sumsum;
 					}
 					
 				}
-				
-				//ANOTHER WAY OF LUMPS
-				/*STARTOFCOMMENT A
-				if (intersects.length == 0)
-				{
-					//console.log(intersects[0].faceIndex);//Get face index from mouse event!!!
-					
-					//3 points of this face:
-					var point3 = [];
-					point3.push(faces[intersects[0].faceIndex].a);
-					point3.push(faces[intersects[0].faceIndex].b);
-					point3.push(faces[intersects[0].faceIndex].c);
 			
-					var connectedFace = [];
-					//New an array to store all faces that is connected to this face.
-					for(var i=0; i<faces.length; ++i)
-					{
-						var thesePoints = new Array(faces[i].a, faces[i].b, faces[i].c);
-						
-						if (point3[0] == thesePoints[0] || point3[0] == thesePoints[1] ||point3[0] == thesePoints[2])
-						{
-							connectedFace.push(i);
-							continue;
-						}
-						if (point3[1] == thesePoints[0] || point3[1] == thesePoints[1] ||point3[1] == thesePoints[2])
-						{
-							connectedFace.push(i);
-							continue;
-						}
-						if (point3[2] == thesePoints[0] || point3[2] == thesePoints[1] ||point3[2] == thesePoints[2])
-						{
-							connectedFace.push(i);
-							continue;
-						}
-					}
-					
-					//Now I get connected faces to the specific face.
-					
-					//Next calculate sum of all face normals.
-					
-					var sum = new Array(0,0,0);
-					for (var i=0; i<connectedFace.length; ++i)
-					{
-						sum[0]+=faces[connectedFace[i]].normal.x;
-						sum[1]+=faces[connectedFace[i]].normal.y;
-						sum[2]+=faces[connectedFace[i]].normal.z;
-					}
-					
-					//console.log("now it is "+point3);
-					
-					sum[0]+=faces[intersects[0].faceIndex].normal.x;
-					sum[1]+=faces[intersects[0].faceIndex].normal.y;
-					sum[2]+=faces[intersects[0].faceIndex].normal.z;
-					
-					//Normalized.
-					sumsum = Math.pow(sum[0], 2) + Math.pow(sum[1], 2) + Math.pow(sum[2], 2);  
-					sumsum = Math.sqrt(sumsum);
-					sum[0] = sum[0] / sumsum;
-					sum[1] = sum[1] / sumsum;
-					sum[2] = sum[2] / sumsum;
-					//So now we have direction...
-					
-					//console.log("sum of normal vector");
-					//console.log(sum);
-					
-					//Three points of the face, each point having three directions.
-					points[faces[intersects[0].faceIndex].a].x += 3 * sum[0] / sumsum;
-					points[faces[intersects[0].faceIndex].b].x += 3 * sum[0] / sumsum;
-					points[faces[intersects[0].faceIndex].c].x += 3 * sum[0] / sumsum;
-					
-					points[faces[intersects[0].faceIndex].a].y += 3 * sum[1] / sumsum;
-					points[faces[intersects[0].faceIndex].b].y += 3 * sum[1] / sumsum;
-					points[faces[intersects[0].faceIndex].c].y += 3 * sum[1] / sumsum;
-					
-					points[faces[intersects[0].faceIndex].a].z += 3 * sum[2] / sumsum;
-					points[faces[intersects[0].faceIndex].b].z += 3 * sum[2] / sumsum;
-					points[faces[intersects[0].faceIndex].c].z += 3 * sum[2] / sumsum;
-					
-					//console.log(points[faces[intersects[0].faceIndex].a]);
-					
-					/*STARTOFCOMMENT B
-					for(var i=0;i<connectedFace.length;++i)
-					{
-						if (faces[connectedFace[i]].a == point3[0] || faces[connectedFace[i]].a == point3[1] || faces[connectedFace[i]].a == point3[2]);
-						else
-						{
-							points[faces[connectedFace[i]].a].x +=  1.5 * sum[0] / sumsum;
-							points[faces[connectedFace[i]].a].y +=  1.5 * sum[1] / sumsum;
-							points[faces[connectedFace[i]].a].z +=  1.5 * sum[2] / sumsum;
-						}
-						
-						if (faces[connectedFace[i]].b == point3[0] || faces[connectedFace[i]].b == point3[1] || faces[connectedFace[i]].b == point3[2]);
-						else
-						{
-							points[faces[connectedFace[i]].b].x +=  1.5 * sum[0] / sumsum;
-							points[faces[connectedFace[i]].b].y +=  1.5 * sum[1] / sumsum;
-							points[faces[connectedFace[i]].b].z +=  1.5 * sum[2] / sumsum;
-						}
-						
-						if (faces[connectedFace[i]].c == point3[0] || faces[connectedFace[i]].c == point3[1] || faces[connectedFace[i]].c == point3[2]);
-						else
-						{
-							points[faces[connectedFace[i]].c].x +=  1.5 * sum[0] / sumsum;
-							points[faces[connectedFace[i]].c].y +=  1.5 * sum[1] / sumsum;
-							points[faces[connectedFace[i]].c].z +=  1.5 * sum[2] / sumsum;
-						}
-					}
-					ENDOFCOMMENT B*/
-
-				//}ENDOFCOMMENT A
-		
-		
 				geometry.verticesNeedUpdate = true;
 				render();
 
