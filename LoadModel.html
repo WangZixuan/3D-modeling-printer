@@ -26,9 +26,9 @@
 	</head>
 	<body>
 		
-		<script src="three.min.js"></script>
-		<script src="OBJLoader.js"></script>
-		<script src="OrbitControls.js"></script>
+		<script src="Three js/build/three.min.js"></script>
+		<script src="Three js/examples/js/loaders/OBJLoader.js"></script>
+		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
 
 		<script>
 			
@@ -43,19 +43,25 @@
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 10, window.innerWidth / window.innerHeight, 1, 100 );
-				camera.position.z = 0;
-				camera.position.y=30;
-				camera.position.x=0;
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 30, 0, 0);
+				//camera.lookAt(0,0,0);
 				
 				scene = new THREE.Scene();
 
-				var ambient = new THREE.AmbientLight( 0x404040 );
+				var ambient = new THREE.AmbientLight( 0x606060 );
 				scene.add( ambient );
 
-				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
-				directionalLight.position.set( 10,10,10);
+				var directionalLight = new THREE.DirectionalLight(0xeeeeee );
+				directionalLight.position.set( .2, -1, .2 );
+				directionalLight.position.normalize();
 				scene.add( directionalLight );
+				
+				var pointLight = new THREE.PointLight( 0xffffff, .6 );			
+				pointLight.position.x = 3000;
+				pointLight.position.y = 600;
+				pointLight.position.z = 3000;
+				scene.add( pointLight );
 				
 				//loader manager
 				var manager = new THREE.LoadingManager();
@@ -63,26 +69,17 @@
 					//console.log( item, loaded, total );
 				};
 				
-				var texture = new THREE.Texture();
-				
-				var loader = new THREE.ImageLoader( manager );
-				loader.load( 'Pumpkin_D.jpg', function ( image ) {
-
-					texture.image = image;
-					texture.needsUpdate = true;
-
-				} );
-				
 				// model
 
 				var loader = new THREE.OBJLoader( manager );
-				loader.load( 'Pumpkin.obj', function ( object ) {
+				loader.load( 'QQnew2.obj', function ( object ) {
 					
 					object.traverse( function ( child ) {
 
 						if ( child instanceof THREE.Mesh ) {
 
-							child.material.map = texture;
+							//child.material.map = texture;
+							
 						}
 
 					} );
@@ -92,25 +89,24 @@
 					object.position.z = 0;
 					scene.add( object );
 					
+					object.scale.x = 15;
+					object.scale.y = 15;
+					object.scale.z = 15;		
 					//console.log(object);
-					
-					var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );
+
+					//object.center();
 					
 					object.children[0].geometry.dynamic = true;
+					//object.children[0].geometry.verticesNeedUpdate = true;	
+					object.children[0].geometry.normalize();	
+					object.children[0].geometry.center();	
+						
+					//var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );
+					console.log(object.children[0].geometry);
 					
-					point = geometry.vertices;//Get points
-					
-					face = geometry.faces;//Get faces
-										
-					//console.log(face);
-					
-					//console.log(face[0].a);
-					//console.log(point[face[0].a]);
+					//point = geometry.vertices;//Get points					
+					//face = geometry.faces;//Get faces
 
-					//console.log(point[face[0].a]);
-					
-					object.children[0].geometry.verticesNeedUpdate = true;
-					
 					
 
 				});
@@ -139,8 +135,6 @@
 	
 			function animate() {
 				requestAnimationFrame(animate);
-				//controls.update();
-				point[face[0].a].x += 1;
 				render();
 			}
 			

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script language = "javascript" src="three.js-master/build/three.js"></script>
+    <script src= "three.js-master/examples/js/controls/OrbitControls.js"></script>
+    <script src="three.js-master/examples/js/libs/dat.gui.min.js"></script>
+    <script src="three.js-master/examples/js/renderers/Projector.js"></script>
+    <script src="csg.js-master/csg.js"></script>
+    <script src="ThreeCSG-master/ThreeCSG.js"></script>
+    <script src="sculptGUI.js"></script>
+    <style type="text/css">
+        #canvas-frame {
+            position:absolute;
+            border: none;
+            cursor: pointer;
+            width: 80%;
+            height: 500px;
+            background-color: #555555;
+        }
+    </style>
+    <style type="text/css">
+        #gui-container {
+            position:absolute;
+            left: 80%;
+            border: none;
+            cursor: pointer;
+            width: 20%;
+            height: 500px;
+            background-color: #EEEEEE;
+        }
+    </style>
+    <style type="text/css">
+        .underline1 {
+            position: absolute;
+            left: 0px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline2 {
+            position: absolute;
+            left: 50px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline3 {
+            position: absolute;
+            left: 100px;
+            bottom: 10px;
+        }
+    </style>
+    <style type="text/css">
+        .underline4 {
+            position: absolute;
+            left: 200px;
+            bottom: 10px;
+        }
+    </style>
+    <script type="text/javascript">
+        var renderer;
+        var width;
+        var height;
+        function initRenderer() {
+            console.log(document.getElementById('canvas-frame'));
+            width = document.getElementById('canvas-frame').clientWidth;
+            height = document.getElementById('canvas-frame').clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias : true
+            });
+            renderer.setSize(width, height);
+            document.getElementById('canvas-frame').appendChild(renderer.domElement);
+            renderer.setClearColor(0xcccccc, 1.0);
+            render.shadowMapEnable = true;
+        };
+
+        var scene;
+        function initScene() {
+            scene = new THREE.Scene();
+        };
+
+        var near;
+        var far;
+        var aspect;
+        var fov;
+        var camera;
+        function initCamera() {
+            near = 1;
+            far = 10000;
+            aspect = width / height;
+            fov = 45;
+            camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            camera.updateProjectionMatrix();
+            camera.position.set(100,150,100);
+            camera.lookAt({x:0,y:0,z:0});
+        };
+
+        var spotLight1;
+        var spotLight2;
+        var ambientLight;
+        function initLight() {
+            spotLight1 = new THREE.SpotLight(0xffffff);
+            spotLight1.position.set( 500, 500, 500 );
+            spotLight1.castShadow = true;
+            scene.add(spotLight1);
+
+            spotLight2 = new THREE.SpotLight(0xffffff);
+            spotLight2.position.set( -500, -500, -500 );
+            spotLight2.castShadow = true;
+            scene.add(spotLight2);
+
+            ambientLight = new THREE.AmbientLight(0x444444);
+            scene.add(ambientLight);
+        };
+
+        /*objects*/
+        var cube;
+        var sphere;
+        var planeGeo;
+        function initObject() {
+            cube = new THREE.Mesh(
+                    new THREE.BoxGeometry(50,50,50),
+                    new THREE.MeshLambertMaterial({color: 0x0000ff}));
+            var csgCube = new ThreeBSP(cube);
+
+            sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(30, 30, 30),
+                    new THREE.MeshLambertMaterial({color: 0x0000ff}));
+            var csgSphere = new ThreeBSP(sphere);
+
+            var csgU = csgCube.union(csgSphere);
+            scene.add(csgU.toMesh(new THREE.MeshLambertMaterial({color: 0x0000ff})));
+
+            planeGeo = new THREE.PlaneGeometry(150, 150, 15, 15);
+            var planeMat = new THREE.MeshLambertMaterial({color: 0xff0000, wireframe: true});
+            var plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI/2;
+            plane.position.y = -50;
+            plane.receiveShadow = true;
+            scene.add(plane);
+        };
+
+        var projector;
+        function initProjector() {
+            projector = new THREE.Projector();
+        }
+        function toScreenXY( world_vector ) {
+            var vector = projector.projectVector(world_vector.clone(), camera);
+            var halfWidth = width / 2;
+            var halfHeight = height / 2;
+            var offset = findOffset(renderer.domElement);
+            var result = new THREE.Vector3(
+                    Math.round(vector.x * halfWidth + halfWidth + offset.left),
+                    Math.round(-vector.y * halfHeight + halfHeight + offset.top),
+                    vector.z);
+            return result;
+        }
+        function findOffset(element) {
+            var pos = new Object();
+            pos.left = pos.top = 0;
+            if (element.offsetParent)
+            {
+                do
+                {
+                    pos.left += element.offsetLeft;
+                    pos.top += element.offsetTop;
+                } while (element = element.offsetParent);
+            }
+            return pos;
+        }
+
+        var controls;
+        function initControls() {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.damping = 0.2;
+            controls.addEventListener( 'change', render );
+        }
+
+        var render = function(){
+            renderer.render(scene, camera);
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+        }
+
+        function threeStart() {
+            initRenderer();
+            initCamera();
+            initScene();
+            initLight();
+            initObject();
+            initControls();
+            renderer.clear();
+            render();
+            initProjector();
+            animate();
+
+            initGui(cube, render);
+            initDragToolsGui(cube, render);
+            //initContext();
+        };
+
+        var mouseX = 0, mouseY = 0;
+        var mouseDowning = 0;
+        var mouseDragging = 0;
+        /*mouse move event*/
+        function mouseMove(ev){
+            ev = ev || window.event;
+            var mousePos = mouseCoords(ev);
+            var offX = mousePos.x - mouseX;
+            var offY = mousePos.y - mouseY;
+            mouseX = mousePos.x;
+            mouseY = mousePos.y;
+            document.getElementById("s1").innerHTML = mouseX;
+            document.getElementById("s2").innerHTML = mouseY;
+            if(mouseDowning == 1) {
+                mouseDragging = 1;
+                document.getElementById("s3").innerHTML = "pressing";
+            }
+            else {
+                document.getElementById("s3").innerHTML = "unpressing";
+            }
+        };
+        function mouseCoords(ev){
+            var offset = findOffset(renderer.domElement);
+            if(ev.pageX || ev.pageY){
+                return {x:ev.pageX - offset.left, y:ev.pageY - offset.top};
+            }
+            return {
+                x:ev.clientX + document.body.scrollLeft - document.body.clientLeft  - offset.left,
+                y:ev.clientY + document.body.scrollTop  - document.body.clientTop - offset.top
+            };
+        };
+        function findOffset(element) {
+            var pos = new Object();
+            pos.left = pos.top = 0;
+            if (element.offsetParent)
+            {
+                do
+                {
+                    pos.left += element.offsetLeft;
+                    pos.top += element.offsetTop;
+                } while (element = element.offsetParent);
+            }
+            return pos;
+        }
+        /*mouse down event*/
+        function mouseDown(ev){
+            ev = ev || window.event;
+            mouseDowning = 1;
+        };
+        /*mouse up event*/
+        function mouseUp(ev){
+            ev = ev || window.event;
+            mouseDowning = 0;
+            //updateCoors();
+        };
+        /*mouse click event*/
+        /*mouse right click*/
+        function contextMenu() {
+            document.getElementById("s4").innerHTML = "right click";
+            return false;
+        };
+        /*mouse left click*/
+        function mouseClick(ev) {
+            ev = ev || window.event;
+            if(mouseDragging == 1) {
+                mouseDowning  = 0;
+                mouseDragging = 0;
+                return ;
+            }
+            console.log(ev.button);
+            if(ev.button == 0)
+                document.getElementById("s4").innerHTML = "left click";
+            if(ev.button == 2)
+                document.getElementById("s4").innerHTML = "right click";
+        }
+        /*mouse wheel event*/
+        /*注册事件*/
+        if(document.addEventListener){
+            document.addEventListener('DOMMouseScroll',scrollMove,false);
+        }//W3C
+        function scrollMove(ev) {
+            ev = ev || window.event;
+            if(ev.wheelDelta){//IE/Opera/Chrome
+                document.getElementById("s4").innerHTML = ev.wheelDelta;
+                camera.fov *= Math.pow(0.99,ev.wheelDelta/30);
+            }
+            else if(ev.detail){//Firefox
+                //t2.value=ev.detail;
+            }
+            //updateCoors();
+        }
+
+    </script>
+</head>
+<body onload= "threeStart();">
+<span id="canvas-frame"></span>
+<span id="gui-container"></span>
+<script type = "text/javascript">
+    document.getElementById("canvas-frame").addEventListener( 'mousedown', mouseDown, false );
+    document.getElementById("canvas-frame").addEventListener( 'mousemove', mouseMove, false );
+    document.getElementById("canvas-frame").addEventListener( 'mouseup', mouseUp, false );
+    document.getElementById("canvas-frame").addEventListener( 'click', mouseClick, false );
+</script>
+<span id="s1" class = "underline1"></span>
+<span id="s2" class = "underline2"></span>
+<span id="s3" class = "underline3"></span>
+<span id="s4" class = "underline4"></span>
+</body>
+</html>

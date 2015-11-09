@@ -26,9 +26,9 @@
 	</head>
 	<body>
 		
-		<script src="three.min.js"></script>
-		<script src="OBJLoader.js"></script>
-		<script src="OrbitControls.js"></script>
+		<script src="Three js/build/three.min.js"></script>
+		<script src="Three js/examples/js/loaders/OBJLoader.js"></script>
+		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
 
 		<script>
 			//"use strict";
@@ -106,6 +106,10 @@
 
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+				
+				console.log(renderer.domElement.clientWidth);
+				console.log(renderer.domElement.clientHeight);
+				
 				raycaster.setFromCamera( mouse, camera );
 
 				// See if the ray from the camera into the world hits one of our meshes

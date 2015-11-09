@@ -1,0 +1,110 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+        <script src="three.min.js"></script>
+        <script>
+            var xrotate = 0;
+            var yrotate = 0;
+			var zrotate = 0;
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+			var light = new THREE.SpotLight();
+        </script>
+	</head>
+	<body>
+		
+		<script>
+		   
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			var material = new THREE.MeshLambertMaterial( { color: 0xffffff} );
+			var cube = new THREE.Mesh( geometry, material );
+			scene.add( cube );
+
+			camera.position.z = 5;
+			
+			light.position.set( 10, 10, 10 );
+			scene.add(light);
+			
+			var render = function () {
+				//requestAnimationFrame( render );
+
+				/*cube.rotation.x += 0.5;
+				cube.rotation.y += 0.5;*/
+
+				renderer.render(scene, camera);
+			};
+			render();
+			function rotateUp() {
+				xrotate -= 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();
+			}
+			function rotateDown() {
+				xrotate += 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();
+			}
+			function rotateLeft() {
+				yrotate -= 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();
+			}
+			function rotateRight() {
+				yrotate += 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();
+			}
+			function rotateClock(){
+				zrotate -= 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();				
+			}
+			function rotateCounterClock(){
+				zrotate += 0.1;
+				cube.rotation.x = xrotate;
+				cube.rotation.y = yrotate;
+				cube.rotation.z = zrotate;
+				render();				
+			}
+			function big(){
+				cube.scale.x += 0.1;
+				cube.scale.y += 0.1;
+				cube.scale.z += 0.1;
+				render();
+			}
+			function small(){
+				cube.scale.x -= 0.1;
+				cube.scale.y -= 0.1;
+				cube.scale.z -= 0.1;
+				render();
+			}
+		</script>
+        <button id="Up" onclick="rotateUp()">Up</button>
+        <button id="Down" onclick="rotateDown()">Down</button>
+        <button id="Left" onclick="rotateLeft()">Left</button>
+        <button id="Right" onclick="rotateRight()">Right</button>
+		<button id="Clock" onclick="rotateClock()">Clock</button>
+		<button id="CounterClock" onclick="rotateCounterClock()">CounterClock</button>
+		<button id="Bigger" onclick="big()">Big</button>
+		<button id="Smaller" onclick="small()">Small</button>
+	</body>
+</html
