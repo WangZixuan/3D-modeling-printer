@@ -30,13 +30,12 @@
 		
 		<script src="Three js/build/three.min.js"></script>
 		<script src="Three js/examples/js/loaders/OBJLoader.js"></script>
-		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
 
 		<script>
 			
 			var container;
 			var camera, scene, renderer;
-			var point, face;
+			var points, faces;
 			var objectOfModel;
 			var xrotate = 0;
             var yrotate = 0;
@@ -105,8 +104,8 @@
 					objectOfModel = object;	
 						
 					var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );				
-					point = geometry.vertices;//Get points					
-					face = geometry.faces;//Get faces		
+					points = geometry.vertices;//Get points					
+					faces = geometry.faces;//Get faces		
 
 				});
 
@@ -137,14 +136,15 @@
 				raycaster.setFromCamera( mouse, camera );
 
 				// See if the ray from the camera into the world hits one of our meshes
-				var intersects = raycaster.intersectObject( objectOfModel );
+				var intersects = raycaster.intersectObject( objectOfModel.children[0] );
 
-				//console.log(intersects.length);
+				
 				
 				//Make a Goss Lump.
 				if (intersects.length != 0)
 				{
 					console.log("LUMP!!!");
+					console.log(intersects[0].faceIndex);
 					var middlePoint = faces[intersects[0].faceIndex].a;
 				
 					var outsideCirclePoints = new Set();
