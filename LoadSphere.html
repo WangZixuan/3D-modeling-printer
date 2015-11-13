@@ -61,7 +61,7 @@
 				scene.add( directionalLight );
 				
 				
-				geometry = new THREE.SphereGeometry( 3, 32, 32 );
+				geometry = new THREE.SphereGeometry( 3, 64, 64 );
 				material = new THREE.MeshLambertMaterial();
 				object = new THREE.Mesh( geometry, material );
 							
@@ -118,7 +118,7 @@
 				//console.log(intersects.length);
 				
 				//Make a Goss Lump.
-				if (intersects.length != 0)//TODO chage it to !=
+				if (intersects.length != 0)
 				{
 					var middlePoint = faces[intersects[0].faceIndex].a;
 				
@@ -149,21 +149,49 @@
 							continue;
 						}
 					}
+					var arrayOutsideFaces = Array.from(outsideFaces);
+					var arrayOutsideCirclePoints = Array.from(outsideCirclePoints);
 					
-									
+					//Get the outside of outside.
+					
+					var outsideOutsideCirclePoints = new Set(); 
+					
+					for (var i=0; i<faces.length; ++i)
+					{
+						var index = indexOf.call(arrayOutsideCirclePoints, faces[i].a);
+						if (-1 != index)
+						{
+							outsideOutsideCirclePoints.add(faces[i].b);
+							outsideOutsideCirclePoints.add(faces[i].c);
+						}
+							
+						index = indexOf.call(arrayOutsideCirclePoints, faces[i].b);
+						if (-1 != index)
+						{
+							outsideOutsideCirclePoints.add(faces[i].a);
+							outsideOutsideCirclePoints.add(faces[i].c);
+						}
+							
+						index = indexOf.call(arrayOutsideCirclePoints, faces[i].c);
+						if (-1 != index)
+						{
+							outsideOutsideCirclePoints.add(faces[i].a);
+							outsideOutsideCirclePoints.add(faces[i].b);
+						}
+					}
+					
+		
 					//Calculate sum of all normal vectors of faces in outsideFaces[].
 					var sumOfNormal = new Array(0,0,0);
-					
-					var arrayoutsideFaces = Array.from(outsideFaces);
-														
-					for (var oneFaceIndex in arrayoutsideFaces)
+												
+					for (var oneFaceIndex in arrayOutsideFaces)
 					//for (let oneFaceIndex of outsideFaces) 
 					{
 						console.log("oneFaceIndex");
-						console.log(arrayoutsideFaces[oneFaceIndex]);
-						sumOfNormal[0]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.x;
-						sumOfNormal[1]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.y;
-						sumOfNormal[2]+=faces[arrayoutsideFaces[oneFaceIndex]].normal.z;
+						console.log(arrayOutsideFaces[oneFaceIndex]);
+						sumOfNormal[0]+=faces[arrayOutsideFaces[oneFaceIndex]].normal.x;
+						sumOfNormal[1]+=faces[arrayOutsideFaces[oneFaceIndex]].normal.y;
+						sumOfNormal[2]+=faces[arrayOutsideFaces[oneFaceIndex]].normal.z;
 					}
 					
 					//Normalized
@@ -174,18 +202,30 @@
 					sumOfNormal[2] = sumOfNormal[2] / sumsum;
 					
 					//Make the lump
-					points[middlePoint].x += 3 * sumOfNormal[0] / sumsum;
-					points[middlePoint].y += 3 * sumOfNormal[1] / sumsum;
-					points[middlePoint].z += 3 * sumOfNormal[2] / sumsum;
+					points[middlePoint].x += 2 * sumOfNormal[0] / sumsum;
+					points[middlePoint].y += 2 * sumOfNormal[1] / sumsum;
+					points[middlePoint].z += 2 * sumOfNormal[2] / sumsum;
 					
-					var arrayoutsideCirclePoints = Array.from(outsideCirclePoints);
 					
-					for (var onePoint in arrayoutsideCirclePoints)
+					
+					for (var onePoint in arrayOutsideCirclePoints)
 					//for (let onePoint of outsideCirclePoints) 
 					{
-						points[arrayoutsideCirclePoints[onePoint]].x += 1.5 * sumOfNormal[0] / sumsum;
-						points[arrayoutsideCirclePoints[onePoint]].y += 1.5 * sumOfNormal[1] / sumsum;
-						points[arrayoutsideCirclePoints[onePoint]].z += 1.5 * sumOfNormal[2] / sumsum;
+						if (-1 != indexOf.call(arrayOutsideCirclePoints, arrayOutsideCirclePoints[onePoint]))
+						{
+							points[arrayOutsideCirclePoints[onePoint]].x += 1.5 * sumOfNormal[0] / sumsum;
+							points[arrayOutsideCirclePoints[onePoint]].y += 1.5 * sumOfNormal[1] / sumsum;
+							points[arrayOutsideCirclePoints[onePoint]].z += 1.5 * sumOfNormal[2] / sumsum;
+						}
+					}
+					
+					var arrayOutsideOutsideCirclePoints = Array.from(outsideOutsideCirclePoints);
+					for (var onePoint in arrayOutsideOutsideCirclePoints)
+					//for (let onePoint of outsideCirclePoints) 
+					{
+						points[arrayOutsideOutsideCirclePoints[onePoint]].x += 1 * sumOfNormal[0] / sumsum;
+						points[arrayOutsideOutsideCirclePoints[onePoint]].y += 1 * sumOfNormal[1] / sumsum;
+						points[arrayOutsideOutsideCirclePoints[onePoint]].z += 1 * sumOfNormal[2] / sumsum;
 					}
 					
 				}
@@ -194,6 +234,28 @@
 				render();
 
 			}
+			
+			//http://stackoverflow.com/questions/1181575/determine-whether-an-array-contains-a-value
+			var indexOf = function(needle) {
+				if(typeof Array.prototype.indexOf === 'function') {
+					indexOf = Array.prototype.indexOf;
+				} else {
+					indexOf = function(needle) {
+						var i = -1, index = -1;
+			
+						for(i = 0; i < this.length; i++) {
+							if(this[i] === needle) {
+								index = i;
+								break;
+							}
+						}
+			
+						return index;
+					};
+				}
+
+				return indexOf.call(this, needle);
+			};
 			
 						
 		</script>

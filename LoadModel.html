@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Pumpkin loader</title>
+		<title>QQ loader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -28,8 +28,8 @@
 		<button id="Left" onclick="rotateLeft()">Left</button>
         <button id="Right" onclick="rotateRight()">Right</button>
 		
-		<script src="Three js/build/three.min.js"></script>
-		<script src="Three js/examples/js/loaders/OBJLoader.js"></script>
+		<script src="Three js/build/three.js"></script>
+		<script src="Three js/examples/js/loaders/PLYLoader.js"></script>
 
 		<script>
 			
@@ -81,31 +81,27 @@
 				
 				// model
 
-				var loader = new THREE.OBJLoader( manager );
-				loader.load( 'Models/QQnew2.obj', function ( object ) {
-					
-					object.traverse( function ( child ) {} );
+				var loader = new THREE.PLYLoader( manager );
+				loader.load( 'Models/Model_QQ.ply', function ( object ) {
 
-					object.position.x = 0;
-					object.position.y = 0;
-					object.position.z = 0;
-					scene.add( object );
+					var mesh = new THREE.Mesh(object);
 					
-					object.scale.x = 55;
-					object.scale.y = 55;
-					object.scale.z = 55;		 	
+					mesh.position.set(0, 0, 0);
+					mesh.scale.set(55, 55, 55);	 
+					mesh.castShadow = true;
+					mesh.receiveShadow = true;	
 					//console.log(object);
-
-					object.children[0].geometry.dynamic = true;
-					object.children[0].geometry.verticesNeedUpdate = true;	
-					//object.children[0].geometry.normalize();	
-					object.children[0].geometry.center();
+					scene.add( mesh );
 					
-					objectOfModel = object;	
-						
-					var geometry = new THREE.Geometry().fromBufferGeometry( object.children[0].geometry );				
-					points = geometry.vertices;//Get points					
-					faces = geometry.faces;//Get faces		
+					object.geometry.dynamic = true;
+					object.geometry.verticesNeedUpdate = true;	
+					//object.children[0].geometry.normalize();	
+					object.geometry.center();	
+	
+					points = object.vertices;//Get points					
+					faces = object.faces;//Get faces	
+					
+					objectOfModel = object;		
 
 				});
 
