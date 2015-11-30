@@ -30,6 +30,7 @@
 		
 		<script src="Three js/build/three.js"></script>
 		<script src="Three js/examples/js/loaders/PLYLoader.js"></script>
+		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
 
 		<script>
 			
@@ -82,26 +83,26 @@
 				// model
 
 				var loader = new THREE.PLYLoader( manager );
-				loader.load( 'Models/Model_QQ.ply', function ( object ) {
+				loader.load( 'Models/QQascii.ply', function ( object ) {
 
-					var mesh = new THREE.Mesh(object);
+					var material = new THREE.MeshPhongMaterial( { color: 0x0055ff, specular: 0x111111, shininess: 200 } );
+					var mesh = new THREE.Mesh( object, material );
 					
-					mesh.position.set(0, 0, 0);
-					mesh.scale.set(55, 55, 55);	 
-					mesh.castShadow = true;
-					mesh.receiveShadow = true;	
-					//console.log(object);
+					mesh.position.set(0,0,0);
+					mesh.scale.set(0.5,0.5,0.5);	 
+					
+					mesh.geometry.dynamic = true;
+					mesh.geometry.verticesNeedUpdate = true;	
+					//object.children[0].geometry.normalize();
+					mesh.geometry.computeBoundingBox();	
+					mesh.geometry.center();	
+					
 					scene.add( mesh );
-					
-					object.geometry.dynamic = true;
-					object.geometry.verticesNeedUpdate = true;	
-					//object.children[0].geometry.normalize();	
-					object.geometry.center();	
 	
 					points = object.vertices;//Get points					
 					faces = object.faces;//Get faces	
 					
-					objectOfModel = object;		
+					objectOfModel = mesh;		
 
 				});
 
@@ -114,14 +115,14 @@
 			
 			}
 			
-			/*		
+			//TO BE COMMENTED		
 			var controls;
 			function initControls() {
 				controls = new THREE.OrbitControls(camera, renderer.domElement);
 				controls.damping = 0.2;
 				controls.addEventListener( 'change', render );
 			}
-			*/
+			
 
 	
 			function onDoubleClick( event ) {
