@@ -129,13 +129,13 @@
 				
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+				
+				console.log(mouse);
 							
 				raycaster.setFromCamera( mouse, camera );
 
 				// See if the ray from the camera into the world hits one of our meshes
 				var intersects = raycaster.intersectObject( objectOfModel.children[0] );
-
-				
 				
 				//Make a Goss Lump.
 				if (intersects.length != 0)

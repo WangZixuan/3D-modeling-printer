@@ -31,6 +31,35 @@
 		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
 
 		<script>
+            var received_msg;
+            // WebSocket begins:;
+		    var websocket = function () {
+		        if ("WebSocket" in window) {
+		            // Let us open a web socket
+		            var ws = new WebSocket('ws://114.212.82.103:20000', 'echo-protocol');
+		            ws.onopen = function () {
+		                // Web Socket is connected, send data using send()
+		                //ws.send("Message to send");
+		            };
+		            ws.onmessage = function (evt) {
+		                //document.getElementById('getMessage').innerHTML = "I get message: " + received_msg;
+                        var received_msg = eval('(' + evt.data + ')');  
+						document.getElementById('getMessage').innerHTML = 'X: ' + received_msg.X + '\t' + 'Y: ' + received_msg.Y;  
+
+		            };
+		            ws.onclose = function () {
+		                // websocket is closed.
+		                alert("Connection is closed...");
+		            };
+		        }
+		        else {
+		            // The browser doesn't support WebSocket
+		            alert("WebSocket NOT supported by your Browser!");
+		        }
+		    };
+		    websocket();
+		 // WebSocket ends.
+         
 			//"use strict";
 			var container;
 			var camera, scene, renderer;
@@ -104,9 +133,11 @@
 			
 			function onclick( event ) {
 
+                /*
 				mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
-				
+				*/
+                mouse = received_msg;//Use msg from socket.
 				raycaster.setFromCamera( mouse, camera );
 
 				// See if the ray from the camera into the world hits one of our meshes
