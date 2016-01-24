@@ -25,7 +25,6 @@
 		</style>
 	</head>
 	<body>
-		
 		<script src="Three js/build/three.min.js"></script>
 		<script src="Three js/examples/js/loaders/OBJLoader.js"></script>
 		<script src="Three js/examples/js/controls/OrbitControls.js"></script>
@@ -86,14 +85,6 @@
 			var points , faces;
 			var geometry, material, object;
 			var raycaster = new THREE.Raycaster();
-            //var mouse = new THREE.Vector2();
-            
-            //Initialize hand
-
-            //var righthand = new THREE.Mesh(new THREE.CircleGeometry(3, 32), new THREE.MeshBasicMaterial({
-            //    color: 0x0000ff
-            //}) );
-            
 			
 			init();
 			initControls();
@@ -141,7 +132,7 @@
 				container.appendChild( renderer.domElement );
 				              
 			    container.addEventListener( 'dblclick', debugFun, false );
-                
+                                
 			}
 			
 			//TODO comment these		
